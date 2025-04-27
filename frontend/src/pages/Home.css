@@ -1,0 +1,124 @@
+/* RESET y comportamiento base */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: aqua;
+  box-sizing: border-box;
+}
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* HEADER */
+.reddit-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  background-color: #1a1a1b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  z-index: 1000;
+}
+
+.reddit-header li span{
+  color: rgb(163, 164, 164);
+  margin-left: 10px;
+  
+}
+
+/* SUBNAV */
+.subnav {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: white;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  z-index: 900;
+}
+
+/* SIDEBAR escritorio */
+.sidebar-desktop {
+  position: fixed;
+  top: 106px; /* 56 + 50 */
+  left: 0;
+  width: 250px;
+  height: calc(100vh - 106px);
+  background: white;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  padding: 1rem;
+  z-index: 800;
+}
+
+/* OFFCANVAS móvil */
+.sidebar-mobile.offcanvas {
+  width: 250px !important;
+  max-width: 80vw;
+}
+
+/* TRENDING fijo a la derecha */
+@media (min-width: 992px) {
+  .trending {
+    position: fixed;
+    top: 106px;
+    right: 0;
+    width: 500px;
+    height: calc(100vh - 106px);
+    overflow-y: auto;
+    background-color: beige;
+    padding: 1rem;
+    z-index: 800;
+  }
+}
+
+/* MAIN CONTENT entre sidebar y trending */
+.main-content {
+  padding-top: 106px;
+  padding: 1rem;
+  background-color: pink;
+  min-height: 100vh;
+  padding-top: 106px; /* 56px header + 50px subnav */
+}
+
+@media (min-width: 992px) {
+  .main-content {
+    margin-left: 250px;
+    margin-right: 500px;
+    width: calc(100vw - 250px - 500px);
+  }
+}
+
+/* FEED dentro del main-content */
+.feed {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  border: 1px solid black;
+}
+
+/* Imagen de perfil */
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Mobile padding-top reducido */
+@media (max-width: 576px) {
+  .main-content {
+    padding-top: calc(56px + 1rem);
+  }
+}

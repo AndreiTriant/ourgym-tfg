@@ -1,0 +1,29 @@
+security:
+  password_hashers:
+    App\Entity\Usuario:
+      algorithm: auto
+
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\Usuario
+        property: email
+
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+
+    main:
+      pattern: ^/api
+      stateless: false
+      lazy: true
+      provider: app_user_provider
+      custom_authenticators:
+        - App\Security\ApiLoginAuthenticator
+
+  access_control:
+    - { path: ^/api/test-password, roles: PUBLIC_ACCESS }
+    - { path: ^/api/login,         roles: PUBLIC_ACCESS }
+    - { path: ^/api/registro,      roles: PUBLIC_ACCESS }  
+    - { path: ^/api,               roles: ROLE_USER }

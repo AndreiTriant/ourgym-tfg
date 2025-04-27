@@ -1,0 +1,11 @@
+# Ignorar archivos de entorno en raíz
+.env
+.env.local
+
+# Ignorar configuraciones de IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Ignorar logs generales
+*.log

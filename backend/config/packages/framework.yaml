@@ -1,0 +1,16 @@
+# config/packages/framework.yaml
+framework:
+    secret: '%env(APP_SECRET)%'
+    
+    session:
+        enabled: true
+        cookie_secure: auto        # Solo activa Secure en HTTPS
+        cookie_httponly: true      # Protege la cookie: no accesible desde JS
+        cookie_samesite: lax       # Evita CSRF pero permite llamadas desde frontend
+
+    # (opcional, pero recomendable en producción)
+    # csrf_protection: true
+
+    # ESI, fragments, etc. puedes activarlos si usas esas funciones:
+    # esi: true
+    # fragments: true
