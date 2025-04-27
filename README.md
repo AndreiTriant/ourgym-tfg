@@ -1,23 +1,22 @@
 # OurGym - Documentación de Arranque
 
-Este proyecto está dividido en **Frontend (React)** y **Backend (Symfony + API Platform)**, y utiliza **Docker** para crear los contenedores necesarios.
+Proyecto dividido en **Frontend (React)** y **Backend (Symfony + API Platform)**, usando **Docker** para facilitar la instalación.
 
 ---
 
-## 🔄 Requisitos previos
+## 🔄 Requisitos Previos
 
-- Tener **Docker** instalado
-- Tener **Docker Compose** instalado
-- Tener **Git** instalado
-- Tener **Node.js** y **npm** instalado
+- **Docker** y **Docker Compose** instalados.
+- **Git** instalado.
+- **Node.js** y **npm** instalados.
+- **Composer** instalado localmente (solo para algunos comandos).
 
+---
 
 ## 👀 Clonar el repositorio
 
 ```bash
-# Clona el proyecto en tu ordenador
-https://github.com/AndreiTriant/ourgym-TFG.git
-
+git clone https://github.com/AndreiTriant/ourgym-TFG.git
 cd ourgym-TFG
 ```
 
@@ -25,108 +24,113 @@ cd ourgym-TFG
 
 ## 📦 Backend (Symfony + API Platform)
 
-### 1. Arrancar Docker (base de datos + API Symfony)
+Desde la **carpeta raíz** (donde está `docker-compose.yml`):
 
-Desde la carpeta **raíz** del proyecto (donde está `docker-compose.yml`):
+### 1. Levantar Docker
 
 ```bash
 docker compose up -d
 ```
 
-- Esto crea dos contenedores:
-  - **MySQL** en el puerto `3307`
-  - **Symfony API** en el puerto `8000`
+👉 Esto levanta dos contenedores:
+- **MySQL** (`localhost:3307`)
+- **Symfony Backend** (`localhost:8000`)
 
 ---
 
-### 2. Entrar en el contenedor de Symfony (backend)
+### 2. Instalar dependencias backend
+
+**Importante**: Primero entra al contenedor del backend:
 
 ```bash
 docker compose exec backend bash
 ```
 
-Dentro del contenedor ya puedes trabajar como si fuera tu servidor local.
-
-### 3. Instalar dependencias de Symfony
-
-Una vez dentro del contenedor:
+Dentro del contenedor ejecuta:
 
 ```bash
 composer install
 ```
 
-Esto instalará todas las librerías necesarias (API Platform, seguridad, contraseñas, etc).
+Esto instalará Symfony, API Platform y demás dependencias.
 
-### 4. Crear la base de datos y migraciones
+---
+
+### 3. Configurar base de datos
+
+Crear base de datos y aplicar migraciones:
 
 ```bash
 php bin/console doctrine:database:create
 php bin/console doctrine:migrations:migrate
 ```
 
-Esto crea la base de datos `ourgym` y las tablas necesarias.
+Si ves algún error sobre `.env`, recuerda que debes tener el archivo `.env` bien configurado (debería venir en el proyecto).
 
 ---
 
 ## 🌐 Frontend (React + Vite)
 
-### 1. Instalar dependencias de React
+Desde la carpeta `frontend/`:
 
-Desde la carpeta `/frontend`:
+### 1. Instalar dependencias frontend
 
 ```bash
 cd frontend
 npm install
 ```
 
-Esto instala Bootstrap, React, React Router, Axios, etc.
+Instala React, Vite, React Router, Axios, Bootstrap, etc.
 
-### 2. Arrancar el frontend
+---
+
+### 2. Ejecutar el frontend
 
 ```bash
 npm run dev
 ```
 
-Esto levanta el frontend en `http://localhost:5173/`.
+Esto levanta el frontend en:
 
-> El `vite.config.js` ya está preparado para redirigir las llamadas `/api` al backend `localhost:8000`.
+👉 [http://localhost:5173](http://localhost:5173)
 
-
----
-
-## 🔎 Comprobaciones rápidas
-
-- API disponible en: [http://localhost:8000/api](http://localhost:8000/api)
-- Frontend disponible en: [http://localhost:5173](http://localhost:5173)
-
+> Las llamadas `/api` ya están configuradas para apuntar al backend (`localhost:8000`) usando `vite.config.js`.
 
 ---
 
-## 🧬 Comandos útiles
+## ⚡ Comprobaciones Rápidas
 
-| Comando                          | Para qué sirve                                |
-|----------------------------------|------------------------------------------------|
-| `docker compose up -d`           | Levantar contenedores                          |
-| `docker compose down`            | Apagar contenedores                            |
-| `docker compose exec backend bash`| Entrar en el contenedor de Symfony             |
-| `composer install`               | Instalar dependencias backend                  |
-| `php bin/console doctrine:migrations:migrate` | Ejecutar migraciones de base de datos |
-| `npm install`                    | Instalar dependencias frontend                 |
-| `npm run dev`                    | Levantar el frontend React                     |
+- Ver API en [http://localhost:8000/api](http://localhost:8000/api)
+- Ver Frontend en [http://localhost:5173](http://localhost:5173)
 
+---
+
+## 📁 Comandos útiles
+
+| Comando                                  | Explicación                                  |
+| ----------------------------------------- | -------------------------------------------- |
+| `docker compose up -d`                   | Levanta los contenedores                    |
+| `docker compose down`                    | Apaga los contenedores                      |
+| `docker compose exec backend bash`       | Entra en el contenedor de Symfony backend   |
+| `composer install`                       | Instala dependencias Symfony dentro del contenedor |
+| `php bin/console doctrine:migrations:migrate` | Aplica las migraciones de la base de datos |
+| `npm install` (en `frontend/`)            | Instala dependencias React                  |
+| `npm run dev` (en `frontend/`)            | Lanza el servidor de desarrollo de React    |
 
 ---
 
 ## 🌟 Notas importantes
 
-- El login se hace a través de la ruta `/api/login`.
-- Symfony guarda la sesión mediante cookies (no usamos token JWT).
-- Para ver los datos de la sesión, puedes inspeccionar las cookies en el navegador.
-- Asegúrate de tener **Docker corriendo** antes de arrancar nada.
-- Si hay problemas de permisos en Linux/Mac, puede ser necesario usar `sudo` delante de algunos comandos.
-
+- **Autenticación**: se maneja por sesiones (no tokens JWT).
+- **Rutas públicas**: `/api/login` (login), `/api/registro` (registro).
+- **Protección de rutas**: cualquier `/api/*` excepto `/api/login` y `/api/registro` requiere estar logueado.
+- **Errores comunes**:
+  - Si no ves cambios: borrar caché (`docker compose down`, `docker compose up -d`).
+  - Asegúrate que el `.env` exista en `backend/` para que Symfony arranque correctamente.
 
 ---
 
-# 👋 ¡Listo!
-Ahora puedes trabajar tanto en el frontend como en el backend de OurGym sin problemas.
+# ✅ ¡Todo listo!
+
+Ahora puedes desarrollar el **Frontend** y el **Backend** tranquilamente en local.
+
