@@ -6,16 +6,16 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [iniciandoSesion, setIniciandoSesion] = useState(false);
   const navigate = useNavigate();
 
-  // Redirige si ya hay sesión activa
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await api.get('/usuarios'); // o /usuarios/{id} si lo necesitas
-        navigate('/'); // ya está logueado, ir a inicio
+        await api.get('/usuarios');
+        navigate('/');
       } catch {
-        // No está autenticado, se queda en login
+        // No está autenticado
       }
     };
     checkAuth();
@@ -24,11 +24,14 @@ export default function Login() {
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
+    setIniciandoSesion(true);
     try {
       await api.post('/login', { email, password }, { withCredentials: true });
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Error al autenticar');
+    } finally {
+      setIniciandoSesion(false);
     }
   };
 
@@ -60,8 +63,8 @@ export default function Login() {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary w-100">
-            Entrar
+          <button type="submit" className="btn btn-primary w-100" disabled={iniciandoSesion}>
+            {iniciandoSesion ? 'Iniciando sesión...' : 'Entrar'}
           </button>
         </form>
       </div>
