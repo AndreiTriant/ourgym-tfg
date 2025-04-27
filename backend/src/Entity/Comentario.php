@@ -28,6 +28,13 @@ class Comentario
     #[ORM\JoinColumn(nullable: false)]
     private ?Publicacion $publicacion = null;
 
+    // NUEVO: relación para respuestas
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: "respuesta_a_id", referencedColumnName: "id", nullable: true)]
+    private ?Comentario $respuestaA = null;
+
+    // Getters y Setters
+
     public function getId(): ?int { return $this->id; }
 
     public function getContenido(): string { return $this->contenido; }
@@ -41,4 +48,8 @@ class Comentario
 
     public function getPublicacion(): ?Publicacion { return $this->publicacion; }
     public function setPublicacion(?Publicacion $publicacion): static { $this->publicacion = $publicacion; return $this; }
+
+    // NUEVOS para las respuestas
+    public function getRespuestaA(): ?Comentario { return $this->respuestaA; }
+    public function setRespuestaA(?Comentario $respuestaA): static { $this->respuestaA = $respuestaA; return $this; }
 }
