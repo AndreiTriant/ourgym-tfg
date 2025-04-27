@@ -26,6 +26,7 @@ class PublicacionController extends AbstractController
             return [
                 'id' => $publicacion->getId(),
                 'usuario_id' => $usuario ? $usuario->getId() : null,
+                'usuario_nombre' => $usuario ? $usuario->getNomUsu() : null,
                 'imagen' => $publicacion->getImagen(),
                 'descripcion' => $publicacion->getDescripcion(),
                 'fecha' => $publicacion->getFecha()->format('Y-m-d H:i:s'),
@@ -104,5 +105,20 @@ class PublicacionController extends AbstractController
         $resultados = $reaccionRepository->calcularPuntuaciones();
 
         return $this->json($resultados);
+    }
+
+    #[Route('/api/reacciones', name: 'api_reacciones', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function misReacciones(ReaccionRepository $reaccionRepository): JsonResponse
+    {
+        $usuario = $this->getUser();
+        $reacciones = $reaccionRepository->findBy(['usuario' => $usuario]);
+
+        $resultado = [];
+        foreach ($reacciones as $reaccion) {
+            $resultado[$reaccion->getPublicacion()->getId()] = $reaccion->getTipo()->value;
+        }
+
+        return $this->json($resultado);
     }
 }
