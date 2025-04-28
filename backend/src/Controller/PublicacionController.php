@@ -2,14 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Comentario;
 use App\Entity\Publicacion;
 use App\Entity\Reaccion;
 use App\Enum\TipoReaccion;
+use App\Repository\ComentarioRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\ReaccionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -103,7 +106,6 @@ class PublicacionController extends AbstractController
     public function puntuaciones(ReaccionRepository $reaccionRepository): JsonResponse
     {
         $resultados = $reaccionRepository->calcularPuntuaciones();
-
         return $this->json($resultados);
     }
 
@@ -120,5 +122,120 @@ class PublicacionController extends AbstractController
         }
 
         return $this->json($resultado);
+    }
+
+    #[Route('/api/publicacion/{id}/comentar', name: 'api_publicacion_comentar', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function comentar(
+        int $id,
+        Request $request,
+        PublicacionRepository $publicacionRepository,
+        EntityManagerInterface $em,
+        ComentarioRepository $comentarioRepository
+    ): JsonResponse {
+        $usuario = $this->getUser();
+
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        $publicacion = $publicacionRepository->find($id);
+
+        if (!$publicacion) {
+            return new JsonResponse(['error' => 'Publicación no encontrada'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['contenido']) || empty(trim($data['contenido']))) {
+            return new JsonResponse(['error' => 'El contenido no puede estar vacío'], 400);
+        }
+
+        $comentario = new Comentario();
+        $comentario->setUsuario($usuario);
+        $comentario->setPublicacion($publicacion);
+        $comentario->setContenido(trim($data['contenido']));
+        $comentario->setFecha(new \DateTime());
+
+        if (isset($data['respuestaA'])) {
+            $respuestaA = $comentarioRepository->find($data['respuestaA']);
+            if (!$respuestaA) {
+                return new JsonResponse(['error' => 'Comentario al que responde no encontrado'], 404);
+            }
+            $comentario->setRespuestaA($respuestaA);
+        }
+
+        $em->persist($comentario);
+        $em->flush();
+
+        return new JsonResponse(['mensaje' => 'Comentario creado correctamente'], 201);
+    }
+
+    #[Route('/api/publicacion/{id}/comentarios', name: 'api_publicacion_comentarios', methods: ['GET'])]
+    public function listarComentarios(
+        int $id,
+        PublicacionRepository $publicacionRepository
+    ): JsonResponse {
+        $publicacion = $publicacionRepository->find($id);
+
+        if (!$publicacion) {
+            return new JsonResponse(['error' => 'Publicación no encontrada'], 404);
+        }
+
+        $comentarios = $publicacion->getComentarios();
+
+        $resultado = [];
+
+        foreach ($comentarios as $comentario) {
+            $resultado[] = [
+                'id' => $comentario->getId(),
+                'contenido' => $comentario->getContenido(),
+                'fecha' => $comentario->getFecha()->format('Y-m-d H:i:s'),
+                'usuario_id' => $comentario->getUsuario()?->getId(),
+                'usuario_nombre' => $comentario->getUsuario()?->getNomUsu(),
+                'respuestaA' => $comentario->getRespuestaA()?->getId(),
+                'puntuacion' => $comentario->getPuntuacion(),
+            ];
+        }
+
+        return $this->json($resultado);
+    }
+
+    #[Route('/api/comentario/{id}/like', name: 'api_comentario_like', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function likeComentario(
+        ComentarioRepository $comentarioRepository,
+        int $id,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $comentario = $comentarioRepository->find($id);
+
+        if (!$comentario) {
+            return new JsonResponse(['error' => 'Comentario no encontrado'], 404);
+        }
+
+        $comentario->incrementarLikes();
+        $em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/api/comentario/{id}/dislike', name: 'api_comentario_dislike', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function dislikeComentario(
+        ComentarioRepository $comentarioRepository,
+        int $id,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $comentario = $comentarioRepository->find($id);
+
+        if (!$comentario) {
+            return new JsonResponse(['error' => 'Comentario no encontrado'], 404);
+        }
+
+        $comentario->decrementarLikes();
+        $em->flush();
+
+        return $this->json(['success' => true]);
     }
 }
