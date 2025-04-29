@@ -18,7 +18,7 @@ export default function Home() {
     'Premium',
   ];
 
-  // Cierra el offcanvas al hacer resize a escritorio
+  //Cierra el offcanvas al hacer resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 992 && showSidebar) {
@@ -31,11 +31,9 @@ export default function Home() {
 
   return (
     <>
-      {/* Header y subnav fijos */}
       <Header onMenuClick={() => setShowSidebar(true)} />
       <Subnav />
 
-      {/* Sidebar móvil offcanvas */}
       <Sidebar
         items={menuItems}
         show={showSidebar}
@@ -43,17 +41,14 @@ export default function Home() {
         mobile
       />
 
-      {/* Sidebar escritorio (fijo a la izquierda) */}
       <div className="d-none d-lg-block">
         <Sidebar items={menuItems} show mobile={false} />
       </div>
 
-      {/* Contenido central entre sidebar y trending */}
       <main className="main-content">
         <Feed />
       </main>
 
-      {/* Trending fijo a la derecha */}
       <aside className="d-none d-lg-block trending">
         <Trending />
       </aside>

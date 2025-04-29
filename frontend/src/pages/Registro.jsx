@@ -13,20 +13,19 @@ export default function Registro() {
     e.preventDefault();
     const nuevosErrores = {};
 
-    // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       nuevosErrores.confirmPassword = 'Las contraseñas no coinciden.';
       setErrores(nuevosErrores);
       return;
     }
 
-    setErrores({}); // Limpiar errores anteriores
-    setRegistrando(true); // Activar "Registrando..."
+    setErrores({}); 
+    setRegistrando(true); 
 
     try {
       await axios.post('/api/registro', { nom_usu: nomUsu, email, password }, { withCredentials: true });
       alert('Usuario registrado correctamente');
-      window.location.href = '/login'; // Redirigir después de registrar
+      window.location.href = '/login';
     } catch (error) {
       if (error.response && error.response.status === 409) {
         const message = error.response.data.message;
@@ -43,7 +42,7 @@ export default function Registro() {
         alert('Error desconocido al registrar.');
       }
     } finally {
-      setRegistrando(false); // Siempre quitar "Registrando..." al terminar
+      setRegistrando(false);
     }
   };
 
@@ -52,7 +51,6 @@ export default function Registro() {
       <h2>Registro</h2>
       <form onSubmit={handleSubmit} className="needs-validation">
         
-        {/* Nombre de usuario */}
         <div className="mb-3 position-relative">
           <label className="form-label">Nombre de usuario</label>
           <input
@@ -68,7 +66,6 @@ export default function Registro() {
           )}
         </div>
 
-        {/* Email */}
         <div className="mb-3 position-relative">
           <label className="form-label">Correo electrónico</label>
           <input
@@ -84,7 +81,6 @@ export default function Registro() {
           )}
         </div>
 
-        {/* Contraseña */}
         <div className="mb-3">
           <label className="form-label">Contraseña</label>
           <input
@@ -95,7 +91,6 @@ export default function Registro() {
           />
         </div>
 
-        {/* Confirmar contraseña */}
         <div className="mb-3 position-relative">
           <label className="form-label">Confirmar contraseña</label>
           <input

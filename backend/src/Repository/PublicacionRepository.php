@@ -16,5 +16,4 @@ class PublicacionRepository extends ServiceEntityRepository
         parent::__construct($registry, Publicacion::class);
     }
 
-    // Aquí en el futuro puedes añadir consultas personalizadas
 }

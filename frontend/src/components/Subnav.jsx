@@ -1,4 +1,3 @@
-// src/components/Subnav.jsx
 import React from 'react';
 
 export default function Subnav() {

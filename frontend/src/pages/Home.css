@@ -1,4 +1,3 @@
-/* RESET y comportamiento base */
 html, body {
   margin: 0;
   padding: 0;
@@ -10,7 +9,6 @@ html, body {
   box-sizing: inherit;
 }
 
-/* HEADER */
 .reddit-header {
   position: fixed;
   top: 0;
@@ -32,7 +30,6 @@ html, body {
   
 }
 
-/* SUBNAV */
 .subnav {
   position: fixed;
   top: 56px;
@@ -48,10 +45,9 @@ html, body {
   z-index: 900;
 }
 
-/* SIDEBAR escritorio */
 .sidebar-desktop {
   position: fixed;
-  top: 106px; /* 56 + 50 */
+  top: 106px;
   left: 0;
   width: 250px;
   height: calc(100vh - 106px);
@@ -62,13 +58,11 @@ html, body {
   z-index: 800;
 }
 
-/* OFFCANVAS móvil */
 .sidebar-mobile.offcanvas {
   width: 250px !important;
   max-width: 80vw;
 }
 
-/* TRENDING fijo a la derecha */
 @media (min-width: 992px) {
   .trending {
     position: fixed;
@@ -83,13 +77,12 @@ html, body {
   }
 }
 
-/* MAIN CONTENT entre sidebar y trending */
 .main-content {
   padding-top: 106px;
   padding: 1rem;
   background-color: pink;
   min-height: 100vh;
-  padding-top: 106px; /* 56px header + 50px subnav */
+  padding-top: 106px
 }
 
 @media (min-width: 992px) {
@@ -100,11 +93,10 @@ html, body {
   }
 }
 
-/* FEED dentro del main-content */
 .feed {
   max-width: 700px;
-  margin: 0 auto; /* Centrar */
-  padding: 20px 15px; /* Espaciado interior */
+  margin: 0 auto;
+  padding: 20px 15px;
 }
 
 @keyframes spin {
@@ -142,8 +134,8 @@ html, body {
 }
 
 .loader {
-  position: relative; /* antes era absolute: cambiamos */
-  margin: 50px auto;   /* centrado horizontal y separado del top */
+  position: relative; 
+  margin: 50px auto;   
   width: 2.5em;
   height: 2.5em;
   transform: rotate(165deg);

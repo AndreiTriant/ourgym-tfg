@@ -7,13 +7,13 @@ export default function Header({ onMenuClick }) {
   const [userData, setUserData] = useState(null);
   const profileMenuRef = useRef(null);
 
-  // Abre o cierra el menú al hacer click en el avatar
+  //Abrir y cerrar menú
   const handleAvatarClick = (e) => {
-    e.stopPropagation(); // Evitamos que el click propague al document
+    e.stopPropagation();
     setShowProfileMenu(prevState => !prevState);
   };
 
-  // Cargar datos del usuario SOLO una vez
+  //CArgar datos del usuario
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -27,7 +27,7 @@ export default function Header({ onMenuClick }) {
     fetchUserData();
   }, []);
 
-  // Cerrar el menú si haces click fuera
+  //Cuando se hace click fuera del menú se cierra
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
@@ -46,7 +46,6 @@ export default function Header({ onMenuClick }) {
 
   return (
     <header className="reddit-header d-flex justify-content-between align-items-center px-3 py-2">
-      {/* Menú Hamburguesa + Logo */}
       <div className="d-flex align-items-center">
         <button
           className="btn btn-link text-white d-lg-none me-2"
@@ -63,7 +62,6 @@ export default function Header({ onMenuClick }) {
         </div>
       </div>
 
-      {/* Barra de búsqueda */}
       <div className="search-bar d-none d-md-block flex-grow-1 mx-3">
         <input
           type="text"
@@ -72,7 +70,6 @@ export default function Header({ onMenuClick }) {
         />
       </div>
 
-      {/* Iconos + Botón + Avatar */}
       <div className="d-flex align-items-center position-relative">
         <i className="bi bi-chat mx-2 fs-5"></i>
         <i className="bi bi-bell mx-2 fs-5"></i>
@@ -80,7 +77,6 @@ export default function Header({ onMenuClick }) {
           + Create
         </Button>
 
-        {/* Imagen de perfil */}
         <div 
           onClick={handleAvatarClick}
           style={{ cursor: 'pointer' }}
@@ -91,7 +87,7 @@ export default function Header({ onMenuClick }) {
   className="d-flex align-items-center justify-content-center rounded-circle overflow-hidden"
 >
   {!userData ? (
-    // 🔥 Mientras no hay datos del usuario (API aún cargando)
+    //Imagen placeholder cuando todavía carga la imagen del usuario
     <img
       src="/imagenes/fotoUsuario_placeholder.png"
       alt="Cargando..."
@@ -99,7 +95,7 @@ export default function Header({ onMenuClick }) {
       className="rounded-circle"
     />
   ) : (
-    // 🔥 Cuando ya hay datos del usuario
+    //La imagen del usuario ya cargada
     (userData.foto_perfil ? (
       <img
         src={userData.foto_perfil}
@@ -108,7 +104,7 @@ export default function Header({ onMenuClick }) {
         className="rounded-circle"
       />
     ) : (
-      // 🔥 Si no tiene foto de perfil
+      //Si no tiene foto de perfil (aunque más tardé haré que siempre se registre con una predeterminada)
       <img
       src="/imagenes/fotoUsuario_placeholder.png"
       alt="Cargando..."
@@ -120,7 +116,7 @@ export default function Header({ onMenuClick }) {
 </div>
         </div>
 
-        {/* Menú Desplegable */}
+        {/*Menú Desplegable */}
         {showProfileMenu && (
           <div 
             ref={profileMenuRef}
@@ -143,7 +139,7 @@ export default function Header({ onMenuClick }) {
                   View Profile
                 </a>
 
-                {/* Nombre de usuario */}
+                {/*Nombre de usuario */}
                 {userData && (
                   <span>
                   {userData.nom_usu}

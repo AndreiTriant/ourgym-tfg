@@ -15,7 +15,6 @@ export default function Login() {
         await api.get('/usuarios');
         navigate('/');
       } catch {
-        // No está autenticado
       }
     };
     checkAuth();
