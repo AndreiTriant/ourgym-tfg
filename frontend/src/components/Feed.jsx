@@ -17,10 +17,8 @@ export default function Feed() {
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState({ nombre: 'Tú' });
   
-  // ⭐ Función mejorada para cargar reacciones y puntuaciones de comentarios
   const cargarReaccionesComentarios = useCallback(async () => {
     try {
-      // Obtener reacciones de comentarios del usuario actual
       const reaccionesComentariosResponse = await axios.get('/api/reacciones/comentarios', { 
         withCredentials: true,
         headers: {
@@ -31,7 +29,6 @@ export default function Feed() {
         params: { _t: new Date().getTime() }
       });
       
-      // Obtener puntuaciones actualizadas de comentarios
       const puntuacionesComentariosResponse = await axios.get('/api/comentarios/puntuaciones', {
         withCredentials: true,
         headers: {
@@ -42,7 +39,6 @@ export default function Feed() {
         params: { _t: new Date().getTime() }
       });
       
-      // Actualizar las reacciones (like/dislike)
       if (reaccionesComentariosResponse.data) {
         setReaccionesComentarios(prevReacciones => {
           const reaccionesActualizadas = { ...prevReacciones };
@@ -53,16 +49,12 @@ export default function Feed() {
         });
       }
       
-      // Actualizar las puntuaciones de todos los comentarios
       if (puntuacionesComentariosResponse.data) {
-        // Actualizar las puntuaciones en el estado de comentarios
         setComentarios(prevComentarios => {
           const comentariosActualizados = { ...prevComentarios };
           
-          // Recorrer todas las publicaciones
           Object.keys(comentariosActualizados).forEach(publicacionId => {
             if (comentariosActualizados[publicacionId] && comentariosActualizados[publicacionId].length > 0) {
-              // Actualizar la puntuación de cada comentario
               comentariosActualizados[publicacionId] = comentariosActualizados[publicacionId].map(comentario => {
                 if (puntuacionesComentariosResponse.data[comentario.id] !== undefined) {
                   return {
@@ -83,45 +75,34 @@ export default function Feed() {
     }
   }, []);
 
-  // ⭐ Función mejorada para cargar comentarios específicos
   const fetchComentarios = useCallback(async (publicacionId) => {
     try {
       const comentariosResponse = await axios.get(`/api/publicacion/${publicacionId}/comentarios`, { withCredentials: true });
       
-      // ⭐ Usamos un callback en setComentarios para asegurar que trabajamos con el estado más reciente
       setComentarios(prevComentarios => ({
         ...prevComentarios,
         [publicacionId]: comentariosResponse.data
       }));
       
-      // Solo actualizamos las reacciones relacionadas con estos comentarios
       await cargarReaccionesComentarios();
     } catch (error) {
       console.error(`Error al cargar comentarios de la publicación ${publicacionId}:`, error);
     }
   }, [cargarReaccionesComentarios]);
 
-  // Carga inicial de datos
   const fetchData = useCallback(async () => {
     try {
-      // Primero obtener las publicaciones
       const pubsResponse = await axios.get('/api/publicaciones');
       setPublicaciones(pubsResponse.data);
       
-      // Cargar puntuaciones y reacciones
-      try {
-        const [puntosResponse, reaccionesResponse] = await Promise.all([
-          axios.get('/api/publicaciones/puntuaciones'),
-          axios.get('/api/reacciones', { withCredentials: true })
-        ]);
-        
-        setPuntuaciones(Object.fromEntries(Object.entries(puntosResponse.data || {})));
-        setReacciones(reaccionesResponse.data || {});
-      } catch (e) {
-        console.error('Error al cargar puntuaciones o reacciones:', e);
-      }
+      const [puntosResponse, reaccionesResponse] = await Promise.all([
+        axios.get('/api/publicaciones/puntuaciones'),
+        axios.get('/api/reacciones', { withCredentials: true })
+      ]);
+      
+      setPuntuaciones(Object.fromEntries(Object.entries(puntosResponse.data || {})));
+      setReacciones(reaccionesResponse.data || {});
 
-      // ⭐ Cargar los comentarios de manera optimizada
       const comentariosData = {};
       for (const publi of pubsResponse.data) {
         try {
@@ -129,15 +110,13 @@ export default function Feed() {
           comentariosData[publi.id] = comentariosResponse.data;
         } catch (e) {
           console.error(`Error al cargar comentarios para publicación ${publi.id}:`, e);
-          comentariosData[publi.id] = []; // Asegurarnos de que existe la entrada
+          comentariosData[publi.id] = [];
         }
       }
       setComentarios(comentariosData);
 
-      // Cargar reacciones de comentarios
       await cargarReaccionesComentarios();
 
-      // Intentar obtener información del usuario
       try {
         const usuarioResponse = await axios.get('/api/usuario/actual', { withCredentials: true });
         setUsuarioActual(usuarioResponse.data);
@@ -156,24 +135,20 @@ export default function Feed() {
     fetchData();
   }, [fetchData]);
 
-  // ⭐ Funciones optimizadas para las reacciones a publicaciones
   const handleLike = async (publicacionId) => {
     const reaccionActual = reacciones[publicacionId];
     const nuevaReaccion = reaccionActual === 'like' ? null : 'like';
     
-    // Actualizar localmente primero para feedback inmediato
     setPuntuaciones(prev => ({
       ...prev,
       [publicacionId]: (parseInt(prev[publicacionId]) || 0) + (reaccionActual === 'like' ? -1 : reaccionActual === 'dislike' ? 2 : 1)
     }));
     setReacciones(prev => ({ ...prev, [publicacionId]: nuevaReaccion }));
     
-    // Enviar al servidor sin esperar recarga completa
     try { 
       await axios.post(`/api/publicacion/${publicacionId}/like`, {}, { withCredentials: true }); 
     } catch (e) {
       console.error('Error al dar like:', e);
-      // Revertir cambios locales en caso de error
       setPuntuaciones(prev => ({
         ...prev,
         [publicacionId]: (parseInt(prev[publicacionId]) || 0) - (reaccionActual === 'like' ? -1 : reaccionActual === 'dislike' ? 2 : 1)
@@ -186,19 +161,16 @@ export default function Feed() {
     const reaccionActual = reacciones[publicacionId];
     const nuevaReaccion = reaccionActual === 'dislike' ? null : 'dislike';
     
-    // Actualizar localmente primero para feedback inmediato
     setPuntuaciones(prev => ({
       ...prev,
       [publicacionId]: (parseInt(prev[publicacionId]) || 0) + (reaccionActual === 'dislike' ? 1 : reaccionActual === 'like' ? -2 : -1)
     }));
     setReacciones(prev => ({ ...prev, [publicacionId]: nuevaReaccion }));
     
-    // Enviar al servidor sin esperar recarga completa
     try { 
       await axios.post(`/api/publicacion/${publicacionId}/dislike`, {}, { withCredentials: true }); 
     } catch (e) {
       console.error('Error al dar dislike:', e);
-      // Revertir cambios locales en caso de error
       setPuntuaciones(prev => ({
         ...prev,
         [publicacionId]: (parseInt(prev[publicacionId]) || 0) - (reaccionActual === 'dislike' ? 1 : reaccionActual === 'like' ? -2 : -1)
@@ -207,22 +179,19 @@ export default function Feed() {
     }
   };
 
-  // ⭐ Funciones optimizadas para reacciones a comentarios
   const likeComentario = async (comentarioId, publicacionId) => {
     const reaccionActual = reaccionesComentarios[comentarioId];
     const nuevaReaccion = reaccionActual === 'like' ? null : 'like';
     
-    // Calcular ajuste de puntuación
     let ajuste = 0;
     if (reaccionActual === 'like') {
-      ajuste = -1; // Quitar like
+      ajuste = -1;
     } else if (reaccionActual === 'dislike') {
-      ajuste = 2;  // Cambiar de dislike a like: +2
+      ajuste = 2;
     } else {
-      ajuste = 1;  // Nuevo like
+      ajuste = 1;
     }
     
-    // Actualizar estados locales inmediatamente
     setComentarios(prev => ({
       ...prev,
       [publicacionId]: prev[publicacionId].map(c => 
@@ -232,7 +201,6 @@ export default function Feed() {
     
     setReaccionesComentarios(prev => ({ ...prev, [comentarioId]: nuevaReaccion }));
     
-    // Enviar al servidor sin recargar todo
     try { 
       await axios.post(`/api/reaccion-comentario/${comentarioId}/like`, {}, { 
         withCredentials: true,
@@ -242,7 +210,6 @@ export default function Feed() {
       });
     } catch (e) {
       console.error(`Error al dar like al comentario ${comentarioId}:`, e);
-      // Revertir cambios locales en caso de error
       setComentarios(prev => ({
         ...prev,
         [publicacionId]: prev[publicacionId].map(c => 
@@ -257,17 +224,15 @@ export default function Feed() {
     const reaccionActual = reaccionesComentarios[comentarioId];
     const nuevaReaccion = reaccionActual === 'dislike' ? null : 'dislike';
     
-    // Calcular ajuste de puntuación
     let ajuste = 0;
     if (reaccionActual === 'dislike') {
-      ajuste = 1; // Quitar dislike
+      ajuste = 1;
     } else if (reaccionActual === 'like') {
-      ajuste = -2; // Cambiar de like a dislike: -2
+      ajuste = -2;
     } else {
-      ajuste = -1; // Nuevo dislike
+      ajuste = -1;
     }
     
-    // Actualizar estados locales inmediatamente
     setComentarios(prev => ({
       ...prev,
       [publicacionId]: prev[publicacionId].map(c => 
@@ -277,7 +242,6 @@ export default function Feed() {
     
     setReaccionesComentarios(prev => ({ ...prev, [comentarioId]: nuevaReaccion }));
     
-    // Enviar al servidor sin recargar todo
     try { 
       await axios.post(`/api/reaccion-comentario/${comentarioId}/dislike`, {}, { 
         withCredentials: true,
@@ -287,7 +251,6 @@ export default function Feed() {
       });
     } catch (e) {
       console.error(`Error al dar dislike al comentario ${comentarioId}:`, e);
-      // Revertir cambios locales en caso de error
       setComentarios(prev => ({
         ...prev,
         [publicacionId]: prev[publicacionId].map(c => 
@@ -298,78 +261,60 @@ export default function Feed() {
     }
   };
 
-  // Toggle para mostrar/ocultar comentarios
   const toggleComentarios = (publicacionId) => {
     setComentariosVisibles(prev => ({ ...prev, [publicacionId]: !prev[publicacionId] }));
   };
 
-  // Mostrar/Ocultar caja para comentar
   const toggleCajaComentar = (publicacionId) => {
     setMostrarCajaComentar(prev => ({ ...prev, [publicacionId]: !prev[publicacionId] }));
-    // Limpiar el campo de texto al cerrar
     if (mostrarCajaComentar[publicacionId]) {
       setContenidoComentario(prev => ({ ...prev, [publicacionId]: '' }));
     }
   };
 
-  // Mostrar/Ocultar caja para responder a un comentario
   const toggleCajaResponder = (comentarioId) => {
     setMostrarCajaResponder(prev => ({ ...prev, [comentarioId]: !prev[comentarioId] }));
-    // Limpiar el campo de texto al cerrar
     if (mostrarCajaResponder[comentarioId]) {
       setContenidoRespuesta(prev => ({ ...prev, [comentarioId]: '' }));
     }
   };
 
-  // Toggle para mostrar/ocultar respuestas
   const toggleRespuestas = (comentarioId) => {
     setRespuestasVisibles(prev => ({ ...prev, [comentarioId]: !prev[comentarioId] }));
   };
 
-  // ⭐ Función optimizada para obtener el comentario padre
   const obtenerComentarioPadre = useCallback((comentarioId, publicacionId) => {
     const comentariosPublicacion = comentarios[publicacionId] || [];
     const comentario = comentariosPublicacion.find(c => c.id === comentarioId);
     
     if (!comentario || !comentario.respuestaA) {
-      return comentarioId; // Es un comentario principal o no existe
+      return comentarioId;
     }
     
-    // Buscar recursivamente hasta encontrar el comentario principal
     return obtenerComentarioPadre(comentario.respuestaA, publicacionId);
   }, [comentarios]);
 
-  // ⭐ Función optimizada para comentar o responder
   const handleComentar = async (publicacionId, respuestaA = null, usuarioNombre = '') => {
     let texto = respuestaA ? contenidoRespuesta[respuestaA] : contenidoComentario[publicacionId];
     if (!texto?.trim()) return;
 
-    // Guardar el texto para usarlo en la petición
     const contenidoParaEnviar = texto.trim();
 
-    // Limpiar el contenido ANTES de cerrar la caja
     if (respuestaA) {
-      // Limpiar el campo de respuesta
       setContenidoRespuesta(prev => ({ ...prev, [respuestaA]: '' }));
-      // Cerrar la caja de responder
       setMostrarCajaResponder(prev => ({ ...prev, [respuestaA]: false }));
     } else {
-      // Limpiar el campo de comentario
       setContenidoComentario(prev => ({ ...prev, [publicacionId]: '' }));
-      // Cerrar la caja de comentar
       setMostrarCajaComentar(prev => ({ ...prev, [publicacionId]: false }));
     }
 
-    // Asegurarse de que el nombre de usuario esté en la respuesta
     let textoFinal = contenidoParaEnviar;
     if (respuestaA && usuarioNombre && !textoFinal.startsWith(`@${usuarioNombre} `)) {
       textoFinal = `@${usuarioNombre} ` + textoFinal;
     }
 
-    // Encontrar el comentario padre para agrupar las respuestas
     const comentarioPadreId = respuestaA ? obtenerComentarioPadre(respuestaA, publicacionId) : null;
     
-    // Crear nuevo comentario localmente con ID temporal
     const nuevoComentarioId = `temp-${Math.random().toString(36).substring(2)}`;
     const nuevoComentario = {
       id: nuevoComentarioId,
@@ -380,13 +325,11 @@ export default function Feed() {
       puntuacion: 0,
       respondidoA: respuestaA !== comentarioPadreId ? respuestaA : null,
       respondidoUsuario: respuestaA !== comentarioPadreId ? usuarioNombre : null,
-      _esNuevo: true // Marcador para identificar comentarios nuevos
+      _esNuevo: true
     };
 
-    // Actualizar la UI inmediatamente
     setComentarios(prev => {
       const comentariosActualizados = [...(prev[publicacionId] || [])];
-      // Evitar duplicados por actualización múltiple
       if (!comentariosActualizados.some(c => c.contenido === textoFinal && c._esNuevo)) {
         comentariosActualizados.push(nuevoComentario);
       }
@@ -396,23 +339,19 @@ export default function Feed() {
       };
     });
 
-    // Preparar payload para API
     const payload = {
       contenido: textoFinal,
       respuestaA: comentarioPadreId
     };
     
-    // Añadir info de respuesta si es necesario
     if (respuestaA !== comentarioPadreId) {
       payload.respondidoA = respuestaA;
       payload.respondidoUsuario = usuarioNombre;
     }
 
-    // Enviar al servidor
     try {
       const response = await axios.post(`/api/publicacion/${publicacionId}/comentar`, payload, { withCredentials: true });
       
-      // Actualizar comentario con ID real del servidor
       if (response.data && response.data.id) {
         setComentarios(prev => ({
           ...prev,
@@ -422,25 +361,21 @@ export default function Feed() {
         }));
       }
       
-      // Solo actualizamos los comentarios de esta publicación
       await fetchComentarios(publicacionId);
     } catch (e) {
       console.error('Error al enviar comentario:', e);
-      // Quitar comentario local si falla
       setComentarios(prev => ({
         ...prev,
         [publicacionId]: prev[publicacionId].filter(c => c.id !== nuevoComentarioId)
       }));
     }
     
-    // Asegurar visibilidad de comentarios
     setComentariosVisibles(prev => ({ ...prev, [publicacionId]: true }));
     if (comentarioPadreId) {
       setRespuestasVisibles(prev => ({ ...prev, [comentarioPadreId]: true }));
     }
   };
 
-  // Formatear contenido del comentario
   const formatearContenidoComentario = (comentario) => {
     if (comentario.respondidoA && comentario.respondidoUsuario) {
       return (
