@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // cualquier llamada a /api/... se redirige a tu Symfony en localhost:8000
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         rewrite: path => path.replace(/^\/api/, '/api')

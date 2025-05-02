@@ -168,13 +168,18 @@ class PublicacionController extends AbstractController
         $em->persist($comentario);
         $em->flush();
 
-        return new JsonResponse(['mensaje' => 'Comentario creado correctamente'], 201);
+        return new JsonResponse([
+            'id' => $comentario->getId(),
+            'mensaje' => 'Comentario creado correctamente'
+        ], 201);
+        
     }
 
     #[Route('/api/publicacion/{id}/comentarios', name: 'api_publicacion_comentarios', methods: ['GET'])]
     public function listarComentarios(
         int $id,
-        PublicacionRepository $publicacionRepository
+        PublicacionRepository $publicacionRepository,
+        ComentarioRepository $comentarioRepository
     ): JsonResponse {
         $publicacion = $publicacionRepository->find($id);
 
@@ -182,7 +187,14 @@ class PublicacionController extends AbstractController
             return new JsonResponse(['error' => 'Publicación no encontrada'], 404);
         }
 
-        $comentarios = $publicacion->getComentarios();
+        // Cambiado: obtenemos solo los comentarios raíz
+        $comentarios = $comentarioRepository->createQueryBuilder('c')
+            ->where('c.publicacion = :publicacionId')
+            ->andWhere('c.respuestaA IS NULL')
+            ->setParameter('publicacionId', $id)
+            ->orderBy('c.fecha', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         $resultado = [];
 
@@ -201,41 +213,22 @@ class PublicacionController extends AbstractController
         return $this->json($resultado);
     }
 
-    #[Route('/api/comentario/{id}/like', name: 'api_comentario_like', methods: ['POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function likeComentario(
-        ComentarioRepository $comentarioRepository,
-        int $id,
-        EntityManagerInterface $em
-    ): JsonResponse {
-        $comentario = $comentarioRepository->find($id);
+    #[Route('/api/publicaciones/conteos-comentarios', name: 'publicaciones_conteos_comentarios', methods: ['GET'])]
+    public function obtenerConteosComentarios(EntityManagerInterface $em): JsonResponse
+    {
+        $results = $em->createQuery('
+            SELECT p.id AS publicacion_id, COUNT(c.id) AS count
+            FROM App\Entity\Publicacion p
+            LEFT JOIN App\Entity\Comentario c WITH c.publicacion = p
+            GROUP BY p.id
+        ')->getResult();
 
-        if (!$comentario) {
-            return new JsonResponse(['error' => 'Comentario no encontrado'], 404);
+        $conteos = [];
+        foreach ($results as $result) {
+            $conteos[$result['publicacion_id']] = (int) $result['count'];
         }
 
-        $comentario->incrementarLikes();
-        $em->flush();
-
-        return $this->json(['success' => true]);
+        return $this->json($conteos);
     }
 
-    #[Route('/api/comentario/{id}/dislike', name: 'api_comentario_dislike', methods: ['POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function dislikeComentario(
-        ComentarioRepository $comentarioRepository,
-        int $id,
-        EntityManagerInterface $em
-    ): JsonResponse {
-        $comentario = $comentarioRepository->find($id);
-
-        if (!$comentario) {
-            return new JsonResponse(['error' => 'Comentario no encontrado'], 404);
-        }
-
-        $comentario->decrementarLikes();
-        $em->flush();
-
-        return $this->json(['success' => true]);
-    }
 }

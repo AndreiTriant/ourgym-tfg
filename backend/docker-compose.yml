@@ -28,7 +28,24 @@ services:
       - db
     environment:
       DATABASE_URL: "mysql://ourgym:ourgym@db:3306/ourgym"
+      APP_ENV: dev
     command: php -S 0.0.0.0:8000 -t public
+
+  backend_apache:
+    container_name: ourgym_backend_apache
+    build:
+      context: .
+      dockerfile: Dockerfile.apache
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "mysql://ourgym:ourgym@db:3306/ourgym"
+      APP_ENV: dev
+  
 
 volumes:
   db_data:

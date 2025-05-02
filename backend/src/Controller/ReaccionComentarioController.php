@@ -108,4 +108,20 @@ class ReaccionComentarioController extends AbstractController
 
         return new JsonResponse($resultado);
     }
+
+    #[Route('/api/reaccion-comentario/{id}', name: 'quitar_reaccion_comentario', methods: ['DELETE'])]
+    public function quitarReaccionComentario($id, ReaccionComentarioRepository $reacRepo, EntityManagerInterface $em): JsonResponse
+    {
+        $usuario = $this->getUser();
+        $reaccion = $reacRepo->findOneBy(['comentario' => $id, 'usuario' => $usuario]);
+
+        if ($reaccion) {
+            $em->remove($reaccion);
+            $em->flush();
+            return $this->json(['message' => 'Reacción eliminada']);
+        }
+
+        return $this->json(['message' => 'No había reacción que eliminar'], 404);
+    }
+
 }
