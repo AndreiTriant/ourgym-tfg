@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Button } from 'react-bootstrap';
 import axios from 'axios';
+import CrearPub from './CrearPub';
 
 export default function Feed() {
   const [publicaciones, setPublicaciones] = useState([]);
@@ -23,7 +24,10 @@ export default function Feed() {
   const [conteosRespuestas, setConteosRespuestas] = useState({});
   const [cargandoRespuestas, setCargandoRespuestas] = useState({});
 
-  
+  const handleNuevaPublicacion = (nuevaPublicacion) => {
+    setPublicaciones((prev) => [nuevaPublicacion, ...prev]);
+  };  
+
   const cargarReaccionesComentarios = useCallback(async () => {
     try {
       const reaccionesComentariosResponse = await axios.get('/api/reacciones/comentarios', { 
@@ -601,14 +605,7 @@ export default function Feed() {
 
   return (
     <div className="feed">
-      <div className="new-post mb-4">
-        <div className="d-flex mb-2">
-          <input className="form-control" placeholder="¿Qué está pasando?" disabled />
-        </div>
-        <div className="text-end">
-          <Button variant="secondary" disabled>Postear</Button>
-        </div>
-      </div>
+      <CrearPub onPublicacionCreada={handleNuevaPublicacion} />
 
       {cargando ? (
         <div className="loader"></div>
@@ -619,8 +616,12 @@ export default function Feed() {
           <div key={publi.id} className="post border rounded p-3 mb-4 bg-white">
             <div className="d-flex align-items-center mb-2">
               <strong>{publi.usuario_nombre ?? `Usuario ${publi.usuario_id}`}</strong>
+              <span className="badge bg-info ms-2">
+                {publi.tipo === 'RUTINA' ? '🏋️ Rutina' : publi.tipo === 'DIETA' ? '🍽️ Dieta' : '📝 Post'}
+              </span>
+
             </div>
-            {publi.imagen && <img src={publi.imagen} alt="Publicación" className="img-fluid rounded mb-2" />}
+            {publi.imagen && <img src={`http://localhost:8080${publi.imagen}`} alt="Publicación" className="img-fluid rounded mb-2" />}
             <p>{publi.descripcion}</p>
 
             <div className="d-flex gap-2 mb-2">
