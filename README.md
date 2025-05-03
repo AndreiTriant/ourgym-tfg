@@ -1,136 +1,134 @@
-# OurGym - Documentación de Arranque
+# Guía de instalación y puesta en marcha del proyecto
 
-Proyecto dividido en **Frontend (React)** y **Backend (Symfony + API Platform)**, usando **Docker** para facilitar la instalación.
+Este documento explica paso a paso cómo clonar, configurar y ejecutar el proyecto en una nueva máquina local.
 
----
+## Requisitos previos
 
-## 🔄 Requisitos Previos
+Antes de comenzar, asegúrate de tener instalados:
 
-- **Docker** y **Docker Compose** instalados.
-- **Git** instalado.
-- **Node.js** y **npm** instalados.
-- **Composer** instalado localmente (solo para algunos comandos).
+- Git
+- Docker y Docker Compose
+- Node.js y npm
+- Composer
+- Symfony CLI (opcional, pero recomendado)
 
----
+## Pasos detallados
 
-## 👀 Clonar el repositorio
+### 1. Clonar el repositorio
 
-```bash
-git clone https://github.com/AndreiTriant/ourgym-TFG.git
-cd ourgym-TFG
+Abre una terminal y ejecuta:
+
+```
+git clone <URL_DEL_REPOSITORIO>
+cd <nombre-del-repositorio>
 ```
 
----
+### 2. Configurar el archivo .env
 
-## 📦 Backend (Symfony + API Platform)
+El archivo `.env` contiene las variables de entorno necesarias. Si no está en el repositorio (porque suele estar en `.gitignore`), realiza uno de estos pasos:
 
-Desde la **carpeta raíz** (donde está `docker-compose.yml`):
+- Si existe un archivo `.env.example`:
+    ```
+    cp .env.example .env
+    ```
 
-### 1. Levantar Docker
+- Si no existe, crea un archivo `.env` manualmente con al menos las siguientes líneas (ajústalas según tu configuración):
 
-```bash
-docker compose up -d
+    ```
+    DATABASE_URL=mysql://root:root@db:3306/ourgym?serverVersion=8.0
+    APP_ENV=dev
+    ```
+
+### 3. Levantar los contenedores Docker
+
+Esto iniciará el servidor web, base de datos y demás servicios necesarios:
+
+```
+docker-compose up -d
 ```
 
-👉 Esto levanta dos contenedores:
-- **MySQL** (`localhost:3307`)
-- **Symfony Backend** (`localhost:8000`)
+### 4. Instalar las dependencias del backend (Symfony)
 
----
+Ejecuta:
 
-### 2. Instalar dependencias backend
-
-**Importante**: Primero entra al contenedor del backend:
-
-```bash
-docker compose exec backend bash
 ```
-
-Dentro del contenedor ejecuta:
-
-```bash
 composer install
 ```
 
-Esto instalará Symfony, API Platform y demás dependencias.
+Si estás trabajando dentro del contenedor, puedes acceder primero con:
 
----
-
-### 3. Configurar base de datos
-
-Crear base de datos y aplicar migraciones:
-
-```bash
-php bin/console doctrine:database:create
-php bin/console doctrine:migrations:migrate
+```
+docker exec -it <nombre-del-contenedor-app> bash
 ```
 
-Si ves algún error sobre `.env`, recuerda que debes tener el archivo `.env` bien configurado (debería venir en el proyecto).
+y luego correr `composer install` dentro.
 
----
+### 5. Instalar las dependencias del frontend (React/Vite)
 
-## 🌐 Frontend (React + Vite)
+Si tienes una carpeta `frontend` para el cliente React, entra en ella y ejecuta:
 
-Desde la carpeta `frontend/`:
-
-### 1. Instalar dependencias frontend
-
-```bash
+```
 cd frontend
 npm install
 ```
 
-Instala React, Vite, React Router, Axios, Bootstrap, etc.
+### 6. Aplicar las migraciones de la base de datos
 
----
+Esto creará las tablas necesarias:
 
-### 2. Ejecutar el frontend
+```
+php bin/console doctrine:migrations:migrate
+```
 
-```bash
+Si necesitas cargar datos de prueba (fixtures), puedes usar:
+
+```
+php bin/console doctrine:fixtures:load
+```
+
+### 7. Verificar carpetas necesarias
+
+Asegúrate de que la carpeta `public/uploads` exista, ya que normalmente no se sube al repositorio. Si no existe, créala:
+
+```
+mkdir -p public/uploads
+```
+
+### 8. Levantar el frontend (React/Vite)
+
+Si usas Vite, ejecuta:
+
+```
+cd frontend
 npm run dev
 ```
 
-Esto levanta el frontend en:
+### 9. Acceso a la aplicación
 
-👉 [http://localhost:5173](http://localhost:5173)
+Por defecto, podrás acceder a:
 
-> Las llamadas `/api` ya están configuradas para apuntar al backend (`localhost:8000`) usando `vite.config.js`.
+- Backend (Symfony): http://localhost:8080
+- Frontend (React): http://localhost:5173
 
----
+### Notas adicionales
 
-## ⚡ Comprobaciones Rápidas
+- Si cambias el puerto en Docker, `.env` u otros archivos, asegúrate de actualizarlo en todo el proyecto.
+- Si tienes problemas de permisos en la carpeta `uploads`, asegúrate de que tu usuario tenga permisos de lectura/escritura.
+- Si no tienes Symfony CLI, puedes acceder directamente al backend usando los puertos configurados en Docker.
 
-- Ver API en [http://localhost:8000/api](http://localhost:8000/api)
-- Ver Frontend en [http://localhost:5173](http://localhost:5173)
+## Resumen de comandos principales
 
----
+```
+git clone <URL_DEL_REPOSITORIO>
+cd <nombre-del-repositorio>
+cp .env.example .env
+docker-compose up -d
+composer install
+cd frontend
+npm install
+cd ..
+php bin/console doctrine:migrations:migrate
+npm run dev
+```
 
-## 📁 Comandos útiles
-
-| Comando                                  | Explicación                                  |
-| ----------------------------------------- | -------------------------------------------- |
-| `docker compose up -d`                   | Levanta los contenedores                    |
-| `docker compose down`                    | Apaga los contenedores                      |
-| `docker compose exec backend bash`       | Entra en el contenedor de Symfony backend   |
-| `composer install`                       | Instala dependencias Symfony dentro del contenedor |
-| `php bin/console doctrine:migrations:migrate` | Aplica las migraciones de la base de datos |
-| `npm install` (en `frontend/`)            | Instala dependencias React                  |
-| `npm run dev` (en `frontend/`)            | Lanza el servidor de desarrollo de React    |
-
----
-
-## 🌟 Notas importantes
-
-- **Autenticación**: se maneja por sesiones (no tokens JWT).
-- **Rutas públicas**: `/api/login` (login), `/api/registro` (registro).
-- **Protección de rutas**: cualquier `/api/*` excepto `/api/login` y `/api/registro` requiere estar logueado.
-- **Errores comunes**:
-  - Si no ves cambios: borrar caché (`docker compose down`, `docker compose up -d`).
-  - Asegúrate que el `.env` exista en `backend/` para que Symfony arranque correctamente.
-
----
-
-# ✅ ¡Todo listo!
-
-Ahora puedes desarrollar el **Frontend** y el **Backend** tranquilamente en local.
-
+Si tienes alguna duda, consulta al responsable del proyecto.
