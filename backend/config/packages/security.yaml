@@ -27,4 +27,6 @@ security:
     - { path: ^/api/login,         roles: PUBLIC_ACCESS }
     - { path: ^/api/registro,      roles: PUBLIC_ACCESS }  
     - { path: ^/api/publicaciones, roles: PUBLIC_ACCESS }
+    - { path: ^/api/usuarios/username, roles: PUBLIC_ACCESS }
     - { path: ^/api,               roles: ROLE_USER }
+    

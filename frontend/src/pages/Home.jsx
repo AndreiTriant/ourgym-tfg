@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import Subnav from '../components/Subnav';
-import Feed from '../components/Feed';
-import Trending from '../components/Trending';
-import './Home.css';
+import React, { useState, useEffect } from "react";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+import Subnav from "../components/Subnav";
+import Feed from "../components/Feed";
+import Trending from "../components/Trending";
+import "./Home.css";
 
 export default function Home() {
   const [showSidebar, setShowSidebar] = useState(false);
 
   const menuItems = [
-    'Inicio',
-    'Explorar',
-    'Notificaciones',
-    'Mensajes',
-    'Guardados',
-    'Premium',
+    "Inicio",
+    "Explorar",
+    "Notificaciones",
+    "Mensajes",
+    "Guardados",
+    "Premium",
   ];
 
   //Cierra el offcanvas al hacer resize
@@ -25,15 +25,19 @@ export default function Home() {
         setShowSidebar(false);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [showSidebar]);
 
   return (
-    <>
-      <Header onMenuClick={() => setShowSidebar(true)} />
-      <Subnav />
+    <div className="app-container">
+      {/* Fixed Header */}
+      <div className="fixed-header">
+        <Header onMenuClick={() => setShowSidebar(true)} />
+        <Subnav />
+      </div>
 
+      {/* Mobile Sidebar (Offcanvas) */}
       <Sidebar
         items={menuItems}
         show={showSidebar}
@@ -41,17 +45,23 @@ export default function Home() {
         mobile
       />
 
-      <div className="d-none d-lg-block">
-        <Sidebar items={menuItems} show mobile={false} />
+      {/* Main Content Grid */}
+      <div className="content-grid">
+        {/* Left Sidebar - Desktop */}
+        <div className="sidebar-area d-none d-lg-block">
+          <Sidebar items={menuItems} show mobile={false} />
+        </div>
+
+        {/* Main Feed Area */}
+        <main className="feed-area">
+          <Feed />
+        </main>
+
+        {/* Right Sidebar - Desktop */}
+        <div className="trending-area d-none d-lg-block">
+          <Trending />
+        </div>
       </div>
-
-      <main className="main-content">
-        <Feed />
-      </main>
-
-      <aside className="d-none d-lg-block trending">
-        <Trending />
-      </aside>
-    </>
+    </div>
   );
 }

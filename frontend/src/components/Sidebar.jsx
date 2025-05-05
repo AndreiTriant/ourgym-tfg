@@ -1,8 +1,38 @@
 // src/components/Sidebar.jsx
-import React from 'react';
-import { Offcanvas, Button } from 'react-bootstrap';
+import React from "react";
+import { Offcanvas, Button, Nav } from "react-bootstrap";
 
 export default function Sidebar({ items, show, onHide, mobile }) {
+  const renderMenuItems = () => {
+    return items.map((text) => (
+      <Nav.Item key={text} className="mb-3">
+        <Nav.Link href="#" className="text-dark ps-0">
+          {getIconForMenuItem(text)}
+          <span className="ms-2">{text}</span>
+        </Nav.Link>
+      </Nav.Item>
+    ));
+  };
+
+  const getIconForMenuItem = (text) => {
+    switch (text) {
+      case "Inicio":
+        return <i className="bi bi-house-door"></i>;
+      case "Explorar":
+        return <i className="bi bi-hash"></i>;
+      case "Notificaciones":
+        return <i className="bi bi-bell"></i>;
+      case "Mensajes":
+        return <i className="bi bi-envelope"></i>;
+      case "Guardados":
+        return <i className="bi bi-bookmark"></i>;
+      case "Premium":
+        return <i className="bi bi-gem"></i>;
+      default:
+        return <i className="bi bi-circle"></i>;
+    }
+  };
+
   if (mobile) {
     return (
       <Offcanvas
@@ -18,25 +48,22 @@ export default function Sidebar({ items, show, onHide, mobile }) {
         </Offcanvas.Header>
         <Offcanvas.Body className="p-0">
           <div className="p-3">
-            {items.map(text => (
-              <h5 className="fw-bold mb-4" key={text}>
-                <a href="#">{text}</a>
-              </h5>
-            ))}
-            <Button className="w-100 mt-3">Postear</Button>
+            <Nav className="flex-column">{renderMenuItems()}</Nav>
+            <Button className="w-100 mt-3 rounded-pill" variant="primary">
+              Postear
+            </Button>
           </div>
         </Offcanvas.Body>
       </Offcanvas>
     );
   }
+
   return (
     <div className="sidebar sidebar-desktop p-3">
-      {items.map(text => (
-        <h5 className="fw-bold mb-4" key={text}>
-          <a href="#">{text}</a>
-        </h5>
-      ))}
-      <Button className="w-100 mt-3">Postear</Button>
+      <Nav className="flex-column">{renderMenuItems()}</Nav>
+      <Button className="w-100 mt-4 rounded-pill" variant="primary">
+        Postear
+      </Button>
     </div>
   );
 }

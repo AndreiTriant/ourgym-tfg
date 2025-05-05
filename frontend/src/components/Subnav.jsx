@@ -1,23 +1,24 @@
-import React from 'react';
+import React from "react";
+import { Dropdown } from "react-bootstrap";
 
 export default function Subnav() {
   return (
     <nav className="subnav">
-      <div className="dropdown">
-        <button
-          className="btn btn-link dropdown-toggle fw-bold text-dark text-decoration-none"
-          type="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
+      <Dropdown>
+        <Dropdown.Toggle
+          variant="light"
+          id="dropdown-basic"
+          className="fw-bold border-0"
         >
           Para ti
-        </button>
-        <ul className="dropdown-menu">
-          <li><a className="dropdown-item" href="#">Siguiendo</a></li>
-          <li><a className="dropdown-item" href="#">Populares</a></li>
-          <li><a className="dropdown-item" href="#">Novedades</a></li>
-        </ul>
-      </div>
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu>
+          <Dropdown.Item href="#">Siguiendo</Dropdown.Item>
+          <Dropdown.Item href="#">Populares</Dropdown.Item>
+          <Dropdown.Item href="#">Novedades</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
     </nav>
   );
 }

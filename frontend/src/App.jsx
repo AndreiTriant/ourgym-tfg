@@ -4,7 +4,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Registro from './pages/Registro'; // 🔥 Importa Registro
+import Registro from './pages/Registro';
+import PerfilUsuario from './pages/PerfilUsuario'; // 🔥 Importa el nuevo componente
 
 export default function App() {
   const isLoggedIn = !!localStorage.getItem('token');
@@ -33,6 +34,9 @@ export default function App() {
 
       {/* Home (pública) */}
       <Route path="/" element={<Home />} />
+
+      {/* Perfil de usuario */}
+      <Route path="/usuario/:username" element={<PerfilUsuario />} />
 
       {/* Cualquier otra ruta, redirige a Home */}
       <Route path="*" element={<Navigate to="/" replace />} />

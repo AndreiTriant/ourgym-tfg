@@ -17,10 +17,23 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use App\Controller\UsuarioPorUsernameController;
+
 
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
+#[Get(
+    uriTemplate: '/usuarios/username/{nomUsu}',
+    requirements: ['nomUsu' => '.+'],
+    controller: \App\Controller\UsuarioPorUsernameController::class,
+
+    name: 'api_usuarios_por_username',
+    read: false,
+    deserialize: false,
+    stateless: false
+)]
 
 #[ApiResource]
 #[ORM\Entity]
