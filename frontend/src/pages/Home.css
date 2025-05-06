@@ -5,7 +5,7 @@ body {
   height: 100%;
   background-color: #f0f2f5;
   box-sizing: border-box;
-  overflow: hidden; /* Prevent scrolling on body */
+  overflow: hidden;
 }
 *,
 *::before,
@@ -48,12 +48,11 @@ body {
   z-index: 900;
 }
 
-/* App Container */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Fixed height, no scrolling */
-  overflow: hidden; /* Prevent scrolling on the main container */
+  height: 100vh; 
+  overflow: hidden; 
 }
 
 /* Fixed Header */
@@ -65,23 +64,21 @@ body {
   z-index: 1000;
 }
 
-/* Content Grid Layout */
 .content-grid {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-areas: "feed";
-  margin-top: 105px; /* Height of header + subnav */
-  height: calc(100vh - 105px); /* Fixed height based on viewport */
+  margin-top: 105px; 
+  height: calc(100vh - 105px); 
   width: 100dvw;
-  overflow: hidden; /* Prevent scrolling on the grid container */
+  overflow: hidden;
 }
 
-/* Sidebar Styles */
 .sidebar-area {
   grid-area: sidebar;
   background-color: white;
-  overflow-y: auto; /* Make sidebar scrollable */
-  height: 100%; /* Full height */
+  overflow-y: auto;
+  height: 100%;
   border-right: 1px solid #ddd;
 }
 
@@ -96,25 +93,22 @@ body {
   max-width: 80vw;
 }
 
-/* Feed Area */
 .feed-area {
   grid-area: feed;
   padding: 1rem;
   background-image: url("../assets/fondo.png");
-  background-repeat: repeat;           /* Repetir en X e Y */
-  background-size: 450px;             /* Tamaño reducido */
+  background-repeat: repeat;
+  background-size: 450px;          
   background-position: top left;
   overflow-y: auto;
   height: 100%;
 }
 
-
-/* Trending Area */
 .trending-area {
   grid-area: trending;
   background-color: #f0f2f5;
-  overflow-y: auto; /* Make trending area scrollable */
-  height: 100%; /* Full height */
+  overflow-y: auto; 
+  height: 100%; 
   border-left: 1px solid #ddd;
 }
 
@@ -162,7 +156,6 @@ body {
   }
 }
 
-/* Feed Styles - Make entire feed scrollable */
 .feed {
   max-width: 600px;
   margin: 0 auto;
@@ -197,7 +190,6 @@ body {
   border-radius: 50%;
 }
 
-/* Profile pic */
 .profile-pic {
   width: 40px;
   height: 40px;
@@ -205,13 +197,11 @@ body {
   object-fit: cover;
 }
 
-/* Camera button hover effect */
 .camera-btn:hover {
   background-color: rgba(0, 0, 0, 0.05) !important;
   color: #0d6efd !important;
 }
 
-/* Loader animation */
 .loader {
   position: relative;
   margin: 50px auto;
@@ -285,7 +275,6 @@ body {
   }
 }
 
-/* Custom loader */
 .custom-loader {
   width: 70px;
   height: 70px;

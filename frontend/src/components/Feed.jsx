@@ -3,7 +3,7 @@ import { Button } from "react-bootstrap";
 import axios from "axios";
 import CrearPub from "./CrearPub";
 
-export default function Feed() {
+export default function Feed({ publicaciones: propsPublicaciones }) {
   const [publicaciones, setPublicaciones] = useState([]);
   const [puntuaciones, setPuntuaciones] = useState({});
   const [reacciones, setReacciones] = useState({});
@@ -221,31 +221,36 @@ export default function Feed() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [pubsResponse, puntosResponse, reaccionesResponse] =
-        await Promise.all([
-          axios.get("/api/publicaciones"),
-          axios.get("/api/publicaciones/puntuaciones"),
-          axios.get("/api/reacciones", { withCredentials: true }),
-        ]);
-
-      setPublicaciones(pubsResponse.data);
-      setPuntuaciones(puntosResponse.data || {});
-      setReacciones(reaccionesResponse.data || {});
-
+      if (propsPublicaciones && propsPublicaciones.length > 0) {
+        setPublicaciones(propsPublicaciones);
+      } else {
+        const [pubsResponse, puntosResponse, reaccionesResponse] =
+          await Promise.all([
+            axios.get("/api/publicaciones"),
+            axios.get("/api/publicaciones/puntuaciones"),
+            axios.get("/api/reacciones", { withCredentials: true }),
+          ]);
+        setPublicaciones(pubsResponse.data);
+        setPuntuaciones(puntosResponse.data || {});
+        setReacciones(reaccionesResponse.data || {});
+      }
+    } catch (error) {
+      console.error("Error al cargar publicaciones:", error);
+    } finally {
       try {
-        const usuarioResponse = await axios.get("/api/usuario/actual", {
+        const usuarioResponse = await axios.get("/api/usuario/yo", {
           withCredentials: true,
         });
         setUsuarioActual(usuarioResponse.data);
       } catch (e) {
         console.log("No se pudo obtener la información del usuario actual");
+      } finally {
+        setCargando(false);
       }
-    } catch (error) {
-      console.error("Error al cargar publicaciones:", error);
-    } finally {
-      setCargando(false);
     }
-  }, []);
+  }, [propsPublicaciones]);
+  
+  
 
   useEffect(() => {
     fetchData();
@@ -761,7 +766,7 @@ export default function Feed() {
 
   return (
     <div className="feed">
-      <CrearPub onPublicacionCreada={handleNuevaPublicacion} />
+      {!propsPublicaciones && <CrearPub onPublicacionCreada={handleNuevaPublicacion} />}
 
       <div className="posts-container">
         {cargando ? (

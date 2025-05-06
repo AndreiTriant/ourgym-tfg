@@ -7,6 +7,16 @@ export default function Header({ onMenuClick }) {
   const [userData, setUserData] = useState(null);
   const profileMenuRef = useRef(null);
 
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/logout', {}, { withCredentials: true });
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      alert('Hubo un problema al cerrar sesión. Intenta de nuevo.');
+    }
+  };  
+
   //Abrir y cerrar menú
   const handleAvatarClick = (e) => {
     e.stopPropagation();
@@ -158,10 +168,15 @@ export default function Header({ onMenuClick }) {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-white text-decoration-none d-block py-2 px-2">
+                <button
+                  onClick={handleLogout}
+                  className="text-white text-decoration-none d-block py-2 px-2 btn btn-link w-100 text-start"
+                  style={{ textAlign: 'left' }}
+                >
                   Log Out
-                </a>
+                </button> 
               </li>
+
             </ul>
           </div>
         )}

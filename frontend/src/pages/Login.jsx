@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import './Login.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -65,6 +66,13 @@ export default function Login() {
           <button type="submit" className="btn btn-primary w-100" disabled={iniciandoSesion}>
             {iniciandoSesion ? 'Iniciando sesión...' : 'Entrar'}
           </button>
+          <div className="text-center mt-3">
+            <span>¿No tienes una cuenta? </span>
+            <a href="/registro" className="text-primary fw-bold" style={{ textDecoration: 'none' }}>
+              Regístrate
+            </a>
+          </div>
+
         </form>
       </div>
     </div>

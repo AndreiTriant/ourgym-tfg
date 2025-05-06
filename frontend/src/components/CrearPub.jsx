@@ -13,7 +13,7 @@ export default function CrearPub({ onPublicacionCreada }) {
   useEffect(() => {
     const fetchUsuario = async () => {
       try {
-        const response = await axios.get("/api/usuario/actual", {
+        const response = await axios.get("/api/usuario/yo", {
           withCredentials: true,
         });
         if (response.data) {

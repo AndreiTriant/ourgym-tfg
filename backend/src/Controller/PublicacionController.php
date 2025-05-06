@@ -282,4 +282,34 @@ class PublicacionController extends AbstractController
 
         return $this->json($conteos);
     }
+
+    #[Route('/api/usuarios/{id}/publicaciones', name: 'api_usuario_publicaciones', methods: ['GET'])]
+    public function publicacionesPorUsuario(
+        int $id,
+        PublicacionRepository $publicacionRepository
+    ): JsonResponse {
+        $publicaciones = $publicacionRepository->createQueryBuilder('p')
+            ->where('p.usuario = :usuarioId')
+            ->setParameter('usuarioId', $id)
+            ->orderBy('p.fecha', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $resultado = [];
+
+        foreach ($publicaciones as $publicacion) {
+            $resultado[] = [
+                'id' => $publicacion->getId(),
+                'usuario_id' => $publicacion->getUsuario()->getId(),
+                'usuario_nombre' => $publicacion->getUsuario()->getNomUsu(),
+                'imagen' => $publicacion->getImagen(),
+                'descripcion' => $publicacion->getDescripcion(),
+                'fecha' => $publicacion->getFecha()->format('Y-m-d H:i:s'),
+                'tipo' => $publicacion->getTipo()->name,
+            ];
+        }
+
+        return $this->json($resultado);
+    }
+
 }
