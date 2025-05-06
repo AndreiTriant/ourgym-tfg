@@ -35,14 +35,15 @@ class Publicacion
     #[ORM\JoinColumn(nullable: false)]
     private ?Usuario $usuario = null;
 
-    #[ORM\OneToMany(mappedBy: 'publicacion', targetEntity: Comentario::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'publicacion', targetEntity: Comentario::class, orphanRemoval: true, cascade: ['remove'])]
     private Collection $comentarios;
 
-    #[ORM\OneToMany(mappedBy: 'publicacion', targetEntity: Reaccion::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'publicacion', targetEntity: Reaccion::class, orphanRemoval: true, cascade: ['remove'])]
     private Collection $reacciones;
 
-    #[ORM\OneToMany(mappedBy: 'publicacion', targetEntity: Favorito::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'publicacion', targetEntity: Favorito::class, orphanRemoval: true, cascade: ['remove'])]
     private Collection $favoritos;
+
 
     public function __construct()
     {

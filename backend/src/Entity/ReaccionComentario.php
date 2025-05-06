@@ -21,7 +21,7 @@ class ReaccionComentario
     private ?Usuario $usuario = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Comentario $comentario = null;
 
     public function getId(): ?int

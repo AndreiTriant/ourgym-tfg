@@ -4,7 +4,10 @@ namespace App\Entity;
 
 use App\Entity\Publicacion;
 use App\Entity\Usuario;
+use App\Entity\ReaccionComentario;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity]
 class Comentario
@@ -35,7 +38,13 @@ class Comentario
     #[ORM\Column(type: 'integer')]
     private int $puntuacion = 0;
 
-    // Getters y Setters
+    #[ORM\OneToMany(mappedBy: 'comentario', targetEntity: ReaccionComentario::class, orphanRemoval: true, cascade: ['remove'])]
+    private Collection $reacciones;
+
+    public function __construct()
+    {
+        $this->reacciones = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -97,8 +106,6 @@ class Comentario
         return $this;
     }
 
-    // Métodos de puntuacion
-
     public function getPuntuacion(): int
     {
         return $this->puntuacion;
@@ -118,5 +125,10 @@ class Comentario
     public function decrementarLikes(): void
     {
         $this->puntuacion--;
+    }
+
+    public function getReacciones(): Collection
+    {
+        return $this->reacciones;
     }
 }

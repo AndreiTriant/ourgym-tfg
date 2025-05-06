@@ -6,7 +6,7 @@ import Feed from "../components/Feed";
 import Trending from "../components/Trending";
 import "./Home.css";
 
-export default function Home() {
+export default function Home({ usuarioActual }) {
   const [showSidebar, setShowSidebar] = useState(false);
 
   const menuItems = [
@@ -54,7 +54,7 @@ export default function Home() {
 
         {/* Main Feed Area */}
         <main className="feed-area">
-          <Feed />
+        <Feed usuarioActual={usuarioActual} />
         </main>
 
         {/* Right Sidebar - Desktop */}

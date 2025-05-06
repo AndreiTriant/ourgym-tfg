@@ -312,4 +312,29 @@ class PublicacionController extends AbstractController
         return $this->json($resultado);
     }
 
+    #[Route('/api/publicaciones/{id}', name: 'api_publicacion_eliminar', methods: ['DELETE'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function eliminarPublicacion(
+        int $id,
+        PublicacionRepository $publicacionRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $usuario = $this->getUser();
+
+        $publicacion = $publicacionRepository->find($id);
+
+        if (!$publicacion) {
+            return new JsonResponse(['error' => 'Publicación no encontrada'], 404);
+        }
+
+        if ($publicacion->getUsuario() !== $usuario) {
+            return new JsonResponse(['error' => 'No tienes permiso para eliminar esta publicación'], 403);
+        }
+
+        $em->remove($publicacion);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Publicación eliminada correctamente']);
+    }
+
 }

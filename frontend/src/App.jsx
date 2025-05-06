@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import axios from 'axios';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -7,11 +8,27 @@ import Registro from './pages/Registro';
 import PerfilUsuario from './pages/PerfilUsuario';
 
 export default function App() {
+  const [usuarioActual, setUsuarioActual] = useState(null);
   const isLoggedIn = !!localStorage.getItem('token');
+
+  useEffect(() => {
+    const fetchUsuarioActual = async () => {
+      if (isLoggedIn) {
+        try {
+          const response = await axios.get('/api/usuario/yo', { withCredentials: true });
+          setUsuarioActual(response.data);
+        } catch (error) {
+          console.warn('No autenticado o error al obtener usuario actual');
+          setUsuarioActual(null);
+        }
+      }
+    };
+
+    fetchUsuarioActual();
+  }, [isLoggedIn]);
 
   return (
     <Routes>
-      {/* Login */}
       <Route
         path="/login"
         element={
@@ -19,7 +36,6 @@ export default function App() {
         }
       />
 
-      {/* Registro */}
       <Route
         path="/registro"
         element={
@@ -27,16 +43,13 @@ export default function App() {
         }
       />
 
-      {/* Home (pública) */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Home usuarioActual={usuarioActual} />} />
 
-      {/* Perfil de usuario (carga usuarioActual solo aquí) */}
       <Route
         path="/usuario/:username"
-        element={<PerfilUsuario />}
+        element={<PerfilUsuario usuarioActual={usuarioActual} />}
       />
 
-      {/* Cualquier otra ruta, redirige a Home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './Registro.css';
+/*import './Registro.css';*/
 
 export default function Registro() {
   const [nomUsu, setNomUsu] = useState('');

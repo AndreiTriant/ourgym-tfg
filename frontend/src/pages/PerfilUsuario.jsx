@@ -72,7 +72,7 @@ export default function PerfilUsuario() {
         {/* Mantener montados todos los bloques, mostrando solo el activo */}
         <div style={{ display: activeTab === 'publicaciones' ? 'block' : 'none' }}>
           <h2>Publicaciones</h2>
-          <Feed publicaciones={publicaciones} />
+          <Feed publicaciones={publicaciones} usuarioActual={usuarioActual} />
         </div>
 
         <div style={{ display: activeTab === 'comentarios' ? 'block' : 'none' }}>

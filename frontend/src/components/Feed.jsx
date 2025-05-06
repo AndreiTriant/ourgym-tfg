@@ -29,6 +29,22 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
     setPublicaciones((prev) => [nuevaPublicacion, ...prev]);
   };
 
+  const handleEliminarPublicacion = async (publicacionId) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
+      return;
+    }
+  
+    try {
+      await axios.delete(`/api/publicaciones/${publicacionId}`, { withCredentials: true });
+      setPublicaciones((prev) => prev.filter((p) => p.id !== publicacionId));
+      alert('✅ Publicación eliminada correctamente.');
+    } catch (error) {
+      console.error('Error al eliminar la publicación:', error);
+      alert('❌ Hubo un error al intentar eliminar la publicación.');
+    }
+  };
+  
+
   const cargarReaccionesComentarios = useCallback(async () => {
     try {
       const reaccionesComentariosResponse = await axios.get(
@@ -791,6 +807,15 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
                     : "📝 Post"}
                 </span>
               </div>
+              {usuarioActual && usuarioActual.id === publi.usuario_id && (
+                <button
+                  className="btn btn-sm btn-danger mb-2"
+                  onClick={() => handleEliminarPublicacion(publi.id)}
+                >
+                  🗑 Eliminar publicación
+                </button>
+              )}
+
               {publi.imagen && (
                 <img
                   src={`http://localhost:8080${publi.imagen}`}
