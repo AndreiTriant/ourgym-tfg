@@ -796,9 +796,11 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
               className="post border rounded p-3 mb-4 bg-white"
             >
               <div className="d-flex align-items-center mb-2">
-                <strong>
-                  {publi.usuario_nombre ?? `Usuario ${publi.usuario_id}`}
-                </strong>
+              <strong>
+                {publi.usuario_nombre ?? `Usuario ${publi.usuario_id}`}
+                {publi.usuario_tipo_usu === 'premium' && ' 💎'}
+              </strong>
+
                 <span className="badge bg-info ms-2">
                   {publi.tipo === "RUTINA"
                     ? "🏋️ Rutina"

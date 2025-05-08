@@ -32,6 +32,7 @@ class PublicacionController extends AbstractController
                 'id' => $publicacion->getId(),
                 'usuario_id' => $usuario ? $usuario->getId() : null,
                 'usuario_nombre' => $usuario ? $usuario->getNomUsu() : null,
+                'usuario_tipo_usu' => $usuario ? $usuario->getTipoUsu()->value : null,  // 👈 añadimos esto
                 'imagen' => $publicacion->getImagen(),
                 'descripcion' => $publicacion->getDescripcion(),
                 'fecha' => $publicacion->getFecha()->format('Y-m-d H:i:s'),
