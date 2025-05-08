@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import SuscripcionPremium from './pages/SuscripcionPremium';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -49,6 +50,12 @@ export default function App() {
         path="/usuario/:username"
         element={<PerfilUsuario usuarioActual={usuarioActual} />}
       />
+
+      <Route
+        path="/suscripcion"
+        element={<SuscripcionPremium />}
+      />
+
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

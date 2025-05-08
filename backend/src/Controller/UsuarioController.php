@@ -7,8 +7,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\Usuario;
+use App\Enum\TipoUsuario;
 use App\Repository\ComentarioRepository;
 use App\Repository\ReaccionRepository;
+use App\Repository\UsuarioRepository;
+use Doctrine\ORM\EntityManagerInterface;
+
 
 
 class UsuarioController extends AbstractController
@@ -89,6 +93,48 @@ class UsuarioController extends AbstractController
         }
 
         return $this->json($resultado);
+    }
+
+    #[Route('/api/usuario/hacer-premium', name: 'usuario_hacer_premium', methods: ['PATCH'])]
+    public function hacerPremium(UsuarioRepository $usuarioRepository, EntityManagerInterface $em): JsonResponse
+    {
+        /** @var \App\Entity\Usuario $usuario */
+        $usuario = $this->getUser();
+    
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+    
+        if ($usuario->getTipoUsu() === TipoUsuario::PREMIUM) {
+            return new JsonResponse(['message' => 'Ya eres premium']);
+        }
+    
+        $usuario->setTipoUsu(TipoUsuario::PREMIUM);
+        $em->persist($usuario);
+        $em->flush();
+    
+        return new JsonResponse(['message' => '¡Ahora eres premium!']);
+    }
+
+    #[Route('/api/usuario/cancelar-premium', name: 'usuario_cancelar_premium', methods: ['PATCH'])]
+    public function cancelarPremium(EntityManagerInterface $em): JsonResponse
+    {
+        /** @var \App\Entity\Usuario $usuario */
+        $usuario = $this->getUser();
+
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        if ($usuario->getTipoUsu() === TipoUsuario::NORMAL) {
+            return new JsonResponse(['message' => 'No tienes suscripción premium']);
+        }
+
+        $usuario->setTipoUsu(TipoUsuario::NORMAL);
+        $em->persist($usuario);
+        $em->flush();
+
+        return new JsonResponse(['message' => 'Suscripción premium cancelada']);
     }
 
 

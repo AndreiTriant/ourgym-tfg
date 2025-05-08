@@ -164,6 +164,8 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     public function getProgresos(): Collection { return $this->progresos; }
     public function getFavoritos(): Collection { return $this->favoritos; }
     public function getUserIdentifier(): string
+
+    
 {
     return $this->email;
 }
