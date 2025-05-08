@@ -24,6 +24,7 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
   const [respuestas, setRespuestas] = useState({});
   const [conteosRespuestas, setConteosRespuestas] = useState({});
   const [cargandoRespuestas, setCargandoRespuestas] = useState({});
+  const [favoritos, setFavoritos] = useState({});
 
   const handleNuevaPublicacion = (nuevaPublicacion) => {
     setPublicaciones((prev) => [nuevaPublicacion, ...prev]);
@@ -43,6 +44,30 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
       alert('❌ Hubo un error al intentar eliminar la publicación.');
     }
   };
+
+  const toggleGuardar = async (publicacionId) => {
+    const yaGuardado = favoritos[publicacionId];
+  
+    setFavoritos((prev) => ({
+      ...prev,
+      [publicacionId]: !yaGuardado
+    }));
+  
+    try {
+      if (yaGuardado) {
+        await axios.post(`/api/publicacion/${publicacionId}/desguardar`, {}, { withCredentials: true });
+      } else {
+        await axios.post(`/api/publicacion/${publicacionId}/guardar`, {}, { withCredentials: true });
+      }
+    } catch (error) {
+      console.error("Error al cambiar favorito:", error);
+      setFavoritos((prev) => ({
+        ...prev,
+        [publicacionId]: yaGuardado
+      }));
+    }
+  };
+  
   
 
   const cargarReaccionesComentarios = useCallback(async () => {
@@ -250,6 +275,19 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
         setPuntuaciones(puntosResponse.data || {});
         setReacciones(reaccionesResponse.data || {});
       }
+  
+      try {
+        const favoritosResponse = await axios.get("/api/favoritos", {
+          withCredentials: true,
+        });
+        const favoritosMap = {};
+        favoritosResponse.data.forEach((id) => {
+          favoritosMap[id] = true;
+        });
+        setFavoritos(favoritosMap);
+      } catch (e) {
+        console.warn("No se pudieron cargar los favoritos.");
+      }
     } catch (error) {
       console.error("Error al cargar publicaciones:", error);
     } finally {
@@ -265,8 +303,6 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
       }
     }
   }, [propsPublicaciones]);
-  
-  
 
   useEffect(() => {
     fetchData();
@@ -809,6 +845,14 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
                     : "📝 Post"}
                 </span>
               </div>
+              <Button
+                variant={favoritos[publi.id] ? "success" : "outline-success"}
+                size="sm"
+                onClick={() => toggleGuardar(publi.id)}
+              >
+                {favoritos[publi.id] ? "Guardado" : "Guardar"}
+              </Button>
+
               {usuarioActual && usuarioActual.id === publi.usuario_id && (
                 <button
                   className="btn btn-sm btn-danger mb-2"

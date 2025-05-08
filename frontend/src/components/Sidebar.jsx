@@ -6,7 +6,7 @@ export default function Sidebar({ items, show, onHide, mobile }) {
   const renderMenuItems = () => {
     return items.map((text) => (
       <Nav.Item key={text} className="mb-3">
-        <Nav.Link href="#" className="text-dark ps-0">
+        <Nav.Link href={getHrefForMenuItem(text)} className="text-dark ps-0">
           {getIconForMenuItem(text)}
           <span className="ms-2">{text}</span>
         </Nav.Link>
@@ -30,6 +30,25 @@ export default function Sidebar({ items, show, onHide, mobile }) {
         return <i className="bi bi-gem"></i>;
       default:
         return <i className="bi bi-circle"></i>;
+    }
+  };
+
+  const getHrefForMenuItem = (text) => {
+    switch (text) {
+      case "Inicio":
+        return "/";
+      case "Explorar":
+        return "/explorar"; // Ajusta según tengas la ruta
+      case "Notificaciones":
+        return "/notificaciones"; // Ajusta según tengas la ruta
+      case "Mensajes":
+        return "/mensajes"; // Ajusta según tengas la ruta
+      case "Guardados":
+        return "/guardados";
+      case "Premium":
+        return "/suscripcion";
+      default:
+        return "/";
     }
   };
 

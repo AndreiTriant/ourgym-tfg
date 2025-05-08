@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Comentario;
 use App\Entity\Publicacion;
 use App\Entity\Reaccion;
+use App\Entity\Favorito;
 use App\Enum\TipoReaccion;
 use App\Enum\TipoPublicacion;
 use App\Repository\ComentarioRepository;
@@ -337,5 +338,70 @@ class PublicacionController extends AbstractController
 
         return new JsonResponse(['success' => true, 'message' => 'Publicación eliminada correctamente']);
     }
+
+    #[Route('/api/publicacion/{id}/guardar', name: 'api_publicacion_guardar', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function guardar(
+        Publicacion $publicacion,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $usuario = $this->getUser();
+
+        // Buscar si ya existe un favorito para esta publicación
+        $favorito = $em->getRepository(Favorito::class)->findOneBy([
+            'usuario' => $usuario,
+            'publicacion' => $publicacion
+        ]);
+
+        if (!$favorito) {
+            $favorito = new Favorito();
+            $favorito->setUsuario($usuario);
+            $favorito->setPublicacion($publicacion);
+            $em->persist($favorito);
+            $em->flush();
+        }
+
+        return $this->json(['success' => true, 'message' => 'Publicación guardada correctamente']);
+    }
+
+    #[Route('/api/publicacion/{id}/desguardar', name: 'api_publicacion_desguardar', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function desguardar(
+        Publicacion $publicacion,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $usuario = $this->getUser();
+
+        $favorito = $em->getRepository(Favorito::class)->findOneBy([
+            'usuario' => $usuario,
+            'publicacion' => $publicacion
+        ]);
+
+        if ($favorito) {
+            $em->remove($favorito);
+            $em->flush();
+        }
+
+        return $this->json(['success' => true, 'message' => 'Publicación desguardada correctamente']);
+    }
+
+    #[Route('/api/favoritos', name: 'api_favoritos', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function misFavoritos(EntityManagerInterface $em): JsonResponse
+    {
+        $usuario = $this->getUser();
+
+        $favoritos = $em->getRepository(Favorito::class)->findBy(['usuario' => $usuario]);
+
+        $resultado = [];
+        foreach ($favoritos as $fav) {
+            if ($fav->getPublicacion()) {  // Solo publicaciones
+                $resultado[] = $fav->getPublicacion()->getId();
+            }
+        }
+
+        return $this->json($resultado);
+    }
+
 
 }
