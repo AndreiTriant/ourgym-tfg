@@ -13,6 +13,9 @@ export default function PerfilUsuario() {
   const [publicaciones, setPublicaciones] = useState([]);
   const [comentarios, setComentarios] = useState([]);
   const [likes, setLikes] = useState([]);
+  const [siguiendo, setSiguiendo] = useState(false);
+  const [numSeguidores, setNumSeguidores] = useState(0);
+  const [numSeguidos, setNumSeguidos] = useState(0);
 
   useEffect(() => {
     const fetchPerfil = async () => {
@@ -34,7 +37,18 @@ export default function PerfilUsuario() {
         const likesData = await fetch(`/api/usuarios/${userResponse.id}/likes`).then(res => res.json());
         setLikes(likesData);
 
+        // 👉 Fetch de contadores
+        const contadoresRes = await axios.get(`/api/seguimientos/contar/${userResponse.id}`);
+        setNumSeguidores(contadoresRes.data.seguidores);
+        setNumSeguidos(contadoresRes.data.seguidos);
+
+        // 👉 Comprobar si ya sigues (solo si no es tu perfil)
+        if (actualResponse && actualResponse.id !== userResponse.id) {
+          const siguiendoRes = await axios.get(`/api/seguimientos/is-following/${userResponse.id}`);
+          setSiguiendo(siguiendoRes.data.siguiendo);
+        }
       } catch (err) {
+        console.error(err);
         setError(err.message);
       } finally {
         setCargando(false);
@@ -49,6 +63,39 @@ export default function PerfilUsuario() {
 
   const esMiPerfil = usuarioActual && usuarioActual.id === usuario.id;
 
+  const toggleSeguir = async () => {
+    // Tomamos el valor actual ANTES de cambiar nada
+    const estabaSiguiendo = siguiendo;
+
+    // Cambiamos estado y contador al instante (optimista)
+    setSiguiendo(!estabaSiguiendo);
+    setNumSeguidores((prev) => {
+      const nuevoConteo = estabaSiguiendo ? prev - 1 : prev + 1;
+      return nuevoConteo < 0 ? 0 : nuevoConteo;
+    });
+
+    try {
+      if (estabaSiguiendo) {
+        // Dejar de seguir
+        await axios.delete(`/api/seguimientos/${usuario.id}`);
+      } else {
+        // Seguir
+        await axios.post('/api/seguimientos', {
+          seguido_id: usuario.id
+        });
+      }
+    } catch (error) {
+      console.error('Error al seguir/dejar de seguir:', error);
+
+      // ❗ Revertimos si falla
+      setSiguiendo(estabaSiguiendo);
+      setNumSeguidores((prev) => {
+        const revertido = estabaSiguiendo ? prev + 1 : prev - 1;
+        return revertido < 0 ? 0 : revertido;
+      });
+    }
+  };
+
   return (
     <div style={{ padding: '1rem' }}>
       <h1>Perfil de {usuario.nomUsu}</h1>
@@ -56,8 +103,25 @@ export default function PerfilUsuario() {
       <p><strong>Fecha de creación:</strong> {usuario.fechaCreacion}</p>
       <p><strong>Descripción:</strong> {usuario.descripcion || 'Sin descripción'}</p>
 
+      {/* Seguidores y seguidos */}
+      <div style={{ marginTop: '1rem' }}>
+        <p><strong>Seguidores:</strong> {numSeguidores}</p>
+        <p><strong>Seguidos:</strong> {numSeguidos}</p>
+      </div>
+
+      {/* Botón Seguir/Siguiendo SOLO si no es mi perfil */}
+      {!esMiPerfil && (
+        <button
+          className={`btn ${siguiendo ? 'btn-secondary' : 'btn-primary'}`}
+          onClick={toggleSeguir}
+          style={{ marginTop: '1rem' }}
+        >
+          {siguiendo ? 'Siguiendo' : 'Seguir'}
+        </button>
+      )}
+
       {esMiPerfil && (
-        <button onClick={() => alert('Aquí iría la lógica para editar tu perfil')}>
+        <button onClick={() => alert('Aquí iría la lógica para editar tu perfil')} style={{ marginTop: '1rem' }}>
           ✏️ Editar mi perfil
         </button>
       )}
@@ -69,7 +133,6 @@ export default function PerfilUsuario() {
       </div>
 
       <div style={{ marginTop: '1rem' }}>
-        {/* Mantener montados todos los bloques, mostrando solo el activo */}
         <div style={{ display: activeTab === 'publicaciones' ? 'block' : 'none' }}>
           <h2>Publicaciones</h2>
           <Feed publicaciones={publicaciones} usuarioActual={usuarioActual} />
