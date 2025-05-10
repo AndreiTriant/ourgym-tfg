@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 export default function Header({ onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -163,10 +164,15 @@ export default function Header({ onMenuClick }) {
                 </a>
               </li>
               <li className="mb-3">
-                <a href="#" className="text-white text-decoration-none d-block py-2 px-2">
+                <Link
+                  to="/configuracion"
+                  className="text-white text-decoration-none d-block py-2 px-2"
+                  onClick={() => setShowProfileMenu(false)}
+                >
                   Settings
-                </a>
+                </Link>
               </li>
+
               <li>
                 <button
                   onClick={handleLogout}

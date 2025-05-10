@@ -12,8 +12,8 @@ use App\Repository\ComentarioRepository;
 use App\Repository\ReaccionRepository;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
-
-
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UsuarioController extends AbstractController
 {
@@ -135,6 +135,62 @@ class UsuarioController extends AbstractController
         $em->flush();
 
         return new JsonResponse(['message' => 'Suscripción premium cancelada']);
+    }
+
+    #[Route('/api/usuario/editar', name: 'api_editar_usuario', methods: ['PUT'])]
+    public function editarUsuario(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher
+    ): JsonResponse {
+        /** @var Usuario $usuario */
+        $usuario = $this->getUser();
+
+        if (!$usuario) {
+            return $this->json(['error' => 'No autenticado'], 401);
+        }
+
+        // Leer los datos enviados
+        $datos = json_decode($request->getContent(), true);
+
+        // Cambiar nombre de usuario si se envía
+        if (isset($datos['nomUsu'])) {
+            // Comprobar si ya existe ese nombre en otro usuario
+            $usuarioExistente = $em->getRepository(Usuario::class)->findOneBy(['nomUsu' => $datos['nomUsu']]);
+
+            if ($usuarioExistente && $usuarioExistente->getId() !== $usuario->getId()) {
+                return $this->json(['error' => 'El nombre de usuario ya está en uso'], 400);
+            }
+
+            $usuario->setNomUsu($datos['nomUsu']);
+        }
+
+
+        // Cambiar descripción si se envía
+        if (isset($datos['descripcion'])) {
+            $usuario->setDescripcion($datos['descripcion']);
+        }
+
+        // Cambiar foto de perfil si se envía
+        if (isset($datos['fotoPerfil'])) {
+            $usuario->setFotoPerfil($datos['fotoPerfil']);
+        }
+
+        // Cambiar la contraseña si se envía
+        if (!empty($datos['contrasenya'])) {
+            if (empty($datos['confirmarContrasenya']) || $datos['contrasenya'] !== $datos['confirmarContrasenya']) {
+                return $this->json(['error' => 'Las contraseñas no coinciden'], 400);
+            }
+            $usuario->setContrasenya(
+                $passwordHasher->hashPassword($usuario, $datos['contrasenya'])
+            );
+        }
+
+        // Guardar cambios en la base de datos
+        $em->persist($usuario);
+        $em->flush();
+
+        return $this->json(['message' => 'Datos actualizados correctamente']);
     }
 
 

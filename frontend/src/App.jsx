@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import SuscripcionPremium from './pages/SuscripcionPremium';
 import Guardados from './pages/Guardados';
+import Configuracion from './pages/Configuracion';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -61,6 +62,8 @@ export default function App() {
         path="/guardados"
         element={<Guardados />}
       />
+
+      <Route path="/configuracion" element={<Configuracion />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
