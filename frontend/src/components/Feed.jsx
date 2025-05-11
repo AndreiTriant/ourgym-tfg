@@ -2,8 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import CrearPub from "./CrearPub";
+import { Link } from 'react-router-dom';
 
-export default function Feed({ publicaciones: propsPublicaciones }) {
+export default function Feed({ publicaciones: propsPublicaciones, filtro = "para-ti", seguidos = [] }) {
   const [publicaciones, setPublicaciones] = useState([]);
   const [puntuaciones, setPuntuaciones] = useState({});
   const [reacciones, setReacciones] = useState({});
@@ -148,6 +149,36 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
     }
   }, []);
 
+  const fetchRespuestas = useCallback(async (comentarioId) => {
+  try {
+    setCargandoRespuestas((prev) => ({
+      ...prev,
+      [comentarioId]: true,
+    }));
+
+    const response = await axios.get(
+      `/api/comentario/${comentarioId}/respuestas`,
+      { withCredentials: true }
+    );
+
+    setRespuestas((prev) => ({
+      ...prev,
+      [comentarioId]: response.data,
+    }));
+  } catch (error) {
+    console.error(
+      `Error al cargar respuestas del comentario ${comentarioId}:`,
+      error
+    );
+  } finally {
+    setCargandoRespuestas((prev) => ({
+      ...prev,
+      [comentarioId]: false,
+    }));
+  }
+  }, []);
+
+
   const fetchConteoRespuestas = useCallback(async (comentarioId) => {
     try {
       const response = await axios.get(
@@ -231,78 +262,62 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
     }
   }, [publicaciones]);
 
-  const fetchRespuestas = useCallback(async (comentarioId) => {
-    try {
-      setCargandoRespuestas((prev) => ({
-        ...prev,
-        [comentarioId]: true,
-      }));
-
-      const response = await axios.get(
-        `/api/comentario/${comentarioId}/respuestas`,
-        { withCredentials: true }
-      );
-
-      setRespuestas((prev) => ({
-        ...prev,
-        [comentarioId]: response.data,
-      }));
-    } catch (error) {
-      console.error(
-        `Error al cargar respuestas del comentario ${comentarioId}:`,
-        error
-      );
-    } finally {
-      setCargandoRespuestas((prev) => ({
-        ...prev,
-        [comentarioId]: false,
-      }));
-    }
-  }, []);
-
   const fetchData = useCallback(async () => {
+  try {
+    // Primero obtenemos el usuario actual
+    let usuario = null;
     try {
-      if (propsPublicaciones && propsPublicaciones.length > 0) {
-        setPublicaciones(propsPublicaciones);
-      } else {
-        const [pubsResponse, puntosResponse, reaccionesResponse] =
-          await Promise.all([
-            axios.get("/api/publicaciones"),
-            axios.get("/api/publicaciones/puntuaciones"),
-            axios.get("/api/reacciones", { withCredentials: true }),
-          ]);
-        setPublicaciones(pubsResponse.data);
-        setPuntuaciones(puntosResponse.data || {});
-        setReacciones(reaccionesResponse.data || {});
-      }
-  
-      try {
-        const favoritosResponse = await axios.get("/api/favoritos", {
-          withCredentials: true,
-        });
-        const favoritosMap = {};
-        favoritosResponse.data.forEach((id) => {
-          favoritosMap[id] = true;
-        });
-        setFavoritos(favoritosMap);
-      } catch (e) {
-        console.warn("No se pudieron cargar los favoritos.");
-      }
-    } catch (error) {
-      console.error("Error al cargar publicaciones:", error);
-    } finally {
-      try {
-        const usuarioResponse = await axios.get("/api/usuario/yo", {
-          withCredentials: true,
-        });
-        setUsuarioActual(usuarioResponse.data);
-      } catch (e) {
-        console.log("No se pudo obtener la información del usuario actual");
-      } finally {
-        setCargando(false);
-      }
+      const usuarioResponse = await axios.get("/api/usuario/yo", {
+        withCredentials: true,
+      });
+      setUsuarioActual(usuarioResponse.data);
+      usuario = usuarioResponse.data;
+    } catch (e) {
+      console.log("No se pudo obtener la información del usuario actual");
     }
-  }, [propsPublicaciones]);
+
+    // Luego cargamos publicaciones y datos relacionados
+    if (propsPublicaciones && propsPublicaciones.length > 0) {
+      setPublicaciones(propsPublicaciones);
+
+      const [puntosResponse, reaccionesResponse] = await Promise.all([
+        axios.get("/api/publicaciones/puntuaciones", { withCredentials: true }),
+        axios.get("/api/reacciones", { withCredentials: true }),
+      ]);
+      setPuntuaciones(puntosResponse.data || {});
+      setReacciones(reaccionesResponse.data || {});
+    } else {
+      const [pubsResponse, puntosResponse, reaccionesResponse] =
+        await Promise.all([
+          axios.get("/api/publicaciones", { withCredentials: true }),
+          axios.get("/api/publicaciones/puntuaciones", { withCredentials: true }),
+          axios.get("/api/reacciones", { withCredentials: true }),
+        ]);
+      setPublicaciones(pubsResponse.data);
+      setPuntuaciones(puntosResponse.data || {});
+      setReacciones(reaccionesResponse.data || {});
+    }
+
+    // Cargamos favoritos
+    try {
+      const favoritosResponse = await axios.get("/api/favoritos", {
+        withCredentials: true,
+      });
+      const favoritosMap = {};
+      favoritosResponse.data.forEach((id) => {
+        favoritosMap[id] = true;
+      });
+      setFavoritos(favoritosMap);
+    } catch (e) {
+      console.warn("No se pudieron cargar los favoritos.");
+    }
+  } catch (error) {
+    console.error("Error al cargar publicaciones:", error);
+  } finally {
+    setCargando(false);
+  }
+}, [propsPublicaciones]);
+
 
   useEffect(() => {
     fetchData();
@@ -800,8 +815,15 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
     if (comentario.respondidoA && comentario.respondidoUsuario) {
       return (
         <>
-          <strong>{comentario.usuario_nombre ?? "Usuario"}</strong> ➔{" "}
-          {comentario.contenido}
+          <strong>
+            <Link
+              to={`/usuario/${comentario.usuario_nombre}`}
+              className="text-dark text-decoration-none"
+            >
+              {comentario.usuario_nombre ?? "Usuario"}
+            </Link>
+          </strong>{" "}
+          ➔ {comentario.contenido}
         </>
       );
     }
@@ -809,12 +831,34 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
     return (
       <>
         <div>
-          <strong>{comentario.usuario_nombre ?? "Usuario"}</strong>
+          <strong>
+            <Link
+              to={`/usuario/${comentario.usuario_nombre}`}
+              className="text-dark text-decoration-none"
+            >
+              {comentario.usuario_nombre ?? "Usuario"}
+            </Link>
+          </strong>
         </div>
         <div>{comentario.contenido}</div>
       </>
     );
   };
+
+  let publicacionesFiltradas = [...publicaciones];
+
+  if (filtro === "siguiendo") {
+  publicacionesFiltradas = publicacionesFiltradas.filter(publi =>
+    seguidos.includes(publi.usuario_id)
+  );
+}
+
+ else if (filtro === "populares") {
+    publicacionesFiltradas.sort((a, b) => (puntuaciones[b.id] ?? 0) - (puntuaciones[a.id] ?? 0));
+  } else if (filtro === "novedades") {
+    publicacionesFiltradas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  }
+
 
   return (
     <div className="feed">
@@ -826,16 +870,19 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
         ) : !datosCompletamenteCargados ? (
           <div className="loader"></div>
         ) : publicaciones && publicaciones.length > 0 ? (
-          publicaciones.map((publi) => (
+          publicacionesFiltradas.map((publi) => (
             <div
               key={publi.id}
               className="post border rounded p-3 mb-4 bg-white"
             >
-              <div className="d-flex align-items-center mb-2">
-              <strong>
-                {publi.usuario_nombre ?? `Usuario ${publi.usuario_id}`}
-                {publi.usuario_tipo_usu === 'premium' && ' 💎'}
-              </strong>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div className="d-flex align-items-center">
+                <strong>
+                  <Link to={`/usuario/${publi.usuario_nombre}`} className="text-dark text-decoration-none">
+                    {publi.usuario_nombre ?? `Usuario ${publi.usuario_id}`}
+                  </Link>
+                  {publi.usuario_tipo_usu === 'premium' && ' 💎'}
+                </strong>
 
                 <span className="badge bg-info ms-2">
                   {publi.tipo === "RUTINA"
@@ -845,6 +892,15 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
                     : "📝 Post"}
                 </span>
               </div>
+              <small className="text-muted">
+                {new Date(publi.fecha).toLocaleDateString('es-ES', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </small>
+            </div>
+
               <Button
                 variant={favoritos[publi.id] ? "success" : "outline-success"}
                 size="sm"
@@ -966,7 +1022,11 @@ export default function Feed({ publicaciones: propsPublicaciones }) {
                           className="comentario p-2 border rounded mb-2"
                         >
                           <div>
-                            <strong>{c.usuario_nombre ?? "Usuario"}</strong>
+                           <strong>
+                              <Link to={`/usuario/${c.usuario_nombre}`} className="text-dark text-decoration-none">
+                                {c.usuario_nombre ?? "Usuario"}
+                              </Link>
+                           </strong>
                           </div>
                           <div>{c.contenido}</div>
 

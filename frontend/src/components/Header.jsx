@@ -65,11 +65,13 @@ export default function Header({ onMenuClick }) {
           <i className="bi bi-list fs-3"></i>
         </button>
         <div className="logo">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/en/8/82/Reddit_logo_and_wordmark.svg"
-            height="30"
-            alt="Logo"
-          />
+          <Link to="/">
+            <img
+              src="/imagenes/logo.png"
+              height="80"
+              alt="Logo"
+            />
+          </Link>
         </div>
       </div>
 
@@ -109,11 +111,17 @@ export default function Header({ onMenuClick }) {
     //La imagen del usuario ya cargada
     (userData.foto_perfil ? (
       <img
-        src={userData.foto_perfil}
+        src={
+          userData.foto_perfil.includes('fotoUsuario_placeholder')
+            ? userData.foto_perfil
+            : `http://localhost:8080${userData.foto_perfil}`
+        }
+
         alt="Perfil"
         style={{ width: '50px', height: '50px', objectFit: 'cover' }}
         className="rounded-circle"
       />
+
     ) : (
       //Si no tiene foto de perfil (aunque más tardé haré que siempre se registre con una predeterminada)
       <img
@@ -146,9 +154,13 @@ export default function Header({ onMenuClick }) {
           >
             <ul className="list-unstyled mb-0">
               <li className="mb-3">
-                <a href="#" className="text-white text-decoration-none d-block py-2 px-2">
-                  View Profile
-                </a>
+                <Link
+                  to={`/usuario/${userData?.nom_usu}`}
+                  className="text-white text-decoration-none d-block py-2 px-2"
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  Ver Perfil
+                </Link>
 
                 {/*Nombre de usuario */}
                 {userData && (
@@ -160,7 +172,7 @@ export default function Header({ onMenuClick }) {
 
               <li className="mb-3">
                 <a href="#" className="text-white text-decoration-none d-block py-2 px-2">
-                  Achievements
+                  Logros
                 </a>
               </li>
               <li className="mb-3">
@@ -169,7 +181,7 @@ export default function Header({ onMenuClick }) {
                   className="text-white text-decoration-none d-block py-2 px-2"
                   onClick={() => setShowProfileMenu(false)}
                 >
-                  Settings
+                  Configuración
                 </Link>
               </li>
 
@@ -179,7 +191,7 @@ export default function Header({ onMenuClick }) {
                   className="text-white text-decoration-none d-block py-2 px-2 btn btn-link w-100 text-start"
                   style={{ textAlign: 'left' }}
                 >
-                  Log Out
+                  Cerrar Sesión
                 </button> 
               </li>
 

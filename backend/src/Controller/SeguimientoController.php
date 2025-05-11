@@ -146,6 +146,28 @@ class SeguimientoController extends AbstractController
         ]);
     }
 
+    #[Route('/api/seguimientos/seguidos', name: 'api_usuarios_seguidos', methods: ['GET'])]
+    public function obtenerSeguidos(EntityManagerInterface $em): JsonResponse
+    {
+        $usuario = $this->getUser();
+
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        $query = $em->createQuery('
+            SELECT IDENTITY(s.seguido) AS seguido_id
+            FROM App\Entity\Seguimiento s
+            WHERE s.seguidor = :usuario
+        ');
+        $query->setParameter('usuario', $usuario);
+
+        $resultados = $query->getResult();
+        $seguidos = array_column($resultados, 'seguido_id');
+
+        return new JsonResponse($seguidos);
+    }
+
 
 
 }

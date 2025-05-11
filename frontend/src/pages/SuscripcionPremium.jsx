@@ -1,18 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';  // 👈 Importamos el Header
+import Header from '../components/Header';
 
 export default function SuscripcionPremium() {
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [verificandoSesion, setVerificandoSesion] = useState(true);
   const navigate = useNavigate();
 
+  // 🔐 Verifica sesión antes de cargar datos
+  useEffect(() => {
+    const verificarSesion = async () => {
+      try {
+        const res = await fetch("/api/usuario/yo", { credentials: "include" });
+        if (!res.ok) throw new Error("No autenticado");
+      } catch {
+        navigate("/login");
+      } finally {
+        setVerificandoSesion(false);
+      }
+    };
+    verificarSesion();
+  }, [navigate]);
+
+  // 🔄 Carga usuario actual una vez confirmada sesión
   useEffect(() => {
     const fetchUsuarioActual = async () => {
       try {
         const response = await axios.get('/api/usuario/yo', { withCredentials: true });
-        console.log('Usuario recibido en SuscripcionPremium:', response.data);
         setUsuarioActual(response.data);
       } catch (error) {
         console.error('Error al obtener usuario actual:', error);
@@ -22,14 +38,42 @@ export default function SuscripcionPremium() {
       }
     };
 
-    fetchUsuarioActual();
-  }, []);
+    if (!verificandoSesion) {
+      fetchUsuarioActual();
+    }
+  }, [verificandoSesion]);
+
+  if (verificandoSesion) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#f8f9fa',
+          zIndex: 9999
+        }}
+      >
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+            <span className="visually-hidden">Verificando sesión...</span>
+          </div>
+          <p className="mt-3">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (cargando) {
     return (
       <>
         <Header usuarioActual={usuarioActual} />
-        <div>Cargando usuario...</div>
+        <div className="text-center mt-5">Cargando usuario...</div>
       </>
     );
   }
@@ -38,7 +82,9 @@ export default function SuscripcionPremium() {
     return (
       <>
         <Header usuarioActual={usuarioActual} />
-        <div>Error: No se pudo obtener la información del usuario.</div>
+        <div className="alert alert-danger text-center mt-5">
+          Error: No se pudo obtener la información del usuario.
+        </div>
       </>
     );
   }
@@ -69,7 +115,7 @@ export default function SuscripcionPremium() {
 
   return (
     <>
-      <Header usuarioActual={usuarioActual} />  {/* 👈 Aquí mostramos el Header */}
+      <Header usuarioActual={usuarioActual} />
       <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
         <h1>Hazte Premium 🚀</h1>
         <p>

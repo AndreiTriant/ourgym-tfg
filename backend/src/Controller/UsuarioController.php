@@ -14,6 +14,10 @@ use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
+
 
 class UsuarioController extends AbstractController
 {
@@ -191,6 +195,77 @@ class UsuarioController extends AbstractController
         $em->flush();
 
         return $this->json(['message' => 'Datos actualizados correctamente']);
+    }
+
+    #[Route('/api/usuario/foto-perfil', name: 'api_usuario_foto_perfil', methods: ['POST'])]
+    public function subirFotoPerfil(
+        Request $request,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger
+    ): JsonResponse {
+        /** @var Usuario $usuario */
+        $usuario = $this->getUser();
+
+        if (!$usuario) {
+            return new JsonResponse(['error' => 'No autenticado'], 401);
+        }
+
+        /** @var UploadedFile|null $foto */
+        $foto = $request->files->get('foto');
+
+        if (!$foto) {
+            return new JsonResponse(['error' => 'No se ha enviado ninguna imagen'], 400);
+        }
+
+        if (!$foto->isValid()) {
+            return new JsonResponse(['error' => 'Archivo inválido'], 400);
+        }
+
+        // Aseguramos un nombre seguro y único para el archivo
+        $nombreOriginal = pathinfo($foto->getClientOriginalName(), PATHINFO_FILENAME);
+        $nombreSeguro = $slugger->slug($nombreOriginal);
+        $nombreArchivo = $nombreSeguro . '-' . uniqid() . '.' . $foto->guessExtension();
+
+        // Ruta absoluta donde se guardará
+        $directorioDestino = $this->getParameter('kernel.project_dir') . '/public/uploads/perfiles';
+
+        try {
+            $foto->move($directorioDestino, $nombreArchivo);
+        } catch (FileException $e) {
+            return new JsonResponse(['error' => 'Error al guardar la imagen'], 500);
+        }
+
+        // Guardamos la ruta en la base de datos (ej: /uploads/perfiles/miFoto123.jpg)
+        $ruta = '/uploads/perfiles/' . $nombreArchivo;
+        $usuario->setFotoPerfil($ruta);
+        $em->persist($usuario);
+        $em->flush();
+
+        return new JsonResponse(['foto_perfil' => $ruta]);
+    }
+
+    #[Route('/api/usuario/foto-perfil', name: 'api_eliminar_foto_perfil', methods: ['DELETE'])]
+    public function eliminarFotoPerfil(Request $request): JsonResponse
+    {
+        $fotoPath = $request->query->get('path');
+
+        // Protección: no permitir borrar la imagen por defecto
+        if (!$fotoPath || str_contains($fotoPath, 'fotoUsuario_placeholder')) {
+            return new JsonResponse(['message' => 'No se elimina placeholder o ruta inválida.'], 400);
+        }
+
+        $rutaAbsoluta = $this->getParameter('kernel.project_dir') . '/public' . $fotoPath;
+
+        try {
+            if (file_exists($rutaAbsoluta)) {
+                unlink($rutaAbsoluta);
+                return new JsonResponse(['message' => 'Imagen eliminada.']);
+            } else {
+                throw new FileNotFoundException("Archivo no encontrado");
+            }
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => 'Error al borrar la imagen: ' . $e->getMessage()], 500);
+        }
     }
 
 

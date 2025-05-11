@@ -1,7 +1,16 @@
 import React from "react";
 import { Dropdown } from "react-bootstrap";
 
-export default function Subnav() {
+export default function Subnav({ filtro, setFiltro }) {
+  const opciones = [
+    { key: "para-ti", label: "Para ti" },
+    { key: "siguiendo", label: "Siguiendo" },
+    { key: "populares", label: "Populares" },
+    { key: "novedades", label: "Novedades" },
+  ];
+
+  const filtroLabel = opciones.find(o => o.key === filtro)?.label || "Para ti";
+
   return (
     <nav className="subnav">
       <Dropdown>
@@ -10,13 +19,18 @@ export default function Subnav() {
           id="dropdown-basic"
           className="fw-bold border-0"
         >
-          Para ti
+          {filtroLabel}
         </Dropdown.Toggle>
 
         <Dropdown.Menu>
-          <Dropdown.Item href="#">Siguiendo</Dropdown.Item>
-          <Dropdown.Item href="#">Populares</Dropdown.Item>
-          <Dropdown.Item href="#">Novedades</Dropdown.Item>
+          {opciones.map(opcion => (
+            <Dropdown.Item
+              key={opcion.key}
+              onClick={() => setFiltro(opcion.key)}
+            >
+              {opcion.label}
+            </Dropdown.Item>
+          ))}
         </Dropdown.Menu>
       </Dropdown>
     </nav>

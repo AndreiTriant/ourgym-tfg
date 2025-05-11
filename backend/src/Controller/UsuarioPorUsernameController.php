@@ -31,15 +31,18 @@ class UsuarioPorUsernameController
             'email' => $usuario->getEmail(),
             'descripcion' => $usuario->getDescripcion(),
             'fechaCreacion' => $usuario->getFechaCreacion()->format('Y-m-d'),
+            'foto_perfil' => $usuario->getFotoPerfil(), // ✅ esta línea soluciona tu problema
+
             'publicaciones' => array_map(function ($publicacion) {
                 return [
                     'id' => $publicacion->getId(),
                     'descripcion' => $publicacion->getDescripcion(),
                     'fecha' => $publicacion->getFecha()->format('Y-m-d'),
-                    'tipo' => $publicacion->getTipo()->value, // si es enum
+                    'tipo' => $publicacion->getTipo()->value,
                     'imagen' => $publicacion->getImagen(),
                 ];
             }, $usuario->getPublicaciones()->toArray()),
+
             'comentarios' => array_map(function ($comentario) {
                 return [
                     'id' => $comentario->getId(),
@@ -47,19 +50,15 @@ class UsuarioPorUsernameController
                     'fecha' => $comentario->getFecha()->format('Y-m-d'),
                 ];
             }, $usuario->getComentarios()->toArray()),
-           'reacciones' => array_map(function ($reaccion) {
+
+            'reacciones' => array_map(function ($reaccion) {
                 return [
                     'id' => $reaccion->getId(),
                     'tipo' => $reaccion->getTipo()->value,
                     'publicacionId' => $reaccion->getPublicacion()?->getId(),
                 ];
             }, $usuario->getReacciones()->toArray()),
-
-
-
-
         ]);
-        
-        
     }
+
 }
