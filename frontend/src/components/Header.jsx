@@ -79,7 +79,7 @@ export default function Header({ onMenuClick }) {
         <input
           type="text"
           className="form-control rounded-pill px-3"
-          placeholder="Search Reddit"
+          placeholder="Buscar"
         />
       </div>
 
