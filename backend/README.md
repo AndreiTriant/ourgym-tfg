@@ -2,7 +2,7 @@
 
 Proyecto Symfony con MySQL para la plataforma OurGym.
 
-## 🚀 Instalación
+## Instalación
 
 ### 1. Clona el repositorio
 ```bash
@@ -34,27 +34,10 @@ php bin/console doctrine:migrations:migrate
 
 ---
 
-## 🧱 Estructura del proyecto
+## Estructura del proyecto
 - `src/Entity`: Entidades Doctrine
 - `src/Enum`: Enumeraciones de tipos
 - `migrations/`: Archivos de migración de base de datos
 - `docker-compose.yml`: Configuración de contenedores
 
----
-
-## 👥 Colaboradores
-- Backend: Tú ✅
-- Frontend: Tu compañero (por definir integración con la API)
-
----
-
-## 🛠️ Próximos pasos
-- Crear controladores API REST
-- Serialización de entidades con `symfony/serializer`
-- Seguridad con JWT (si se desea login)
-- Testing con PHPUnit
-
----
-
-¡Listo para continuar desarrollando! 💪
 
